@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button } from '../../components/common';
 import type { MMsKInput } from '../../types/models';
+import { SiPython } from 'react-icons/si';
+import { HiCheckCircle } from 'react-icons/hi2';
 // import { calculateMMsK } from '../../services/api'; // Descomentar quando backend estiver pronto
 
 export const MMsK: React.FC = () => {
@@ -93,20 +95,35 @@ export const MMsK: React.FC = () => {
         </form>
       </div>
 
-      <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-        <h4 className="font-bold text-blue-800 mb-2">🐍 Backend Flask Necessário</h4>
-        <p className="text-blue-700 text-sm mb-2">
-          Este frontend está pronto para se conectar com o backend Flask.
-        </p>
-        <p className="text-blue-700 text-sm">
-          <strong>Próximos passos:</strong>
-        </p>
-        <ul className="list-disc list-inside text-blue-700 text-sm mt-1 ml-2">
-          <li>Implemente as fórmulas do M/M/s/K no backend Python (pasta /backend)</li>
-          <li>Arquivo: backend/app/models/mmsk.py</li>
-          <li>Crie o endpoint POST /api/calculate/mmsk</li>
-          <li>Descomente a chamada de API no código deste componente</li>
-        </ul>
+      <div className="mt-6 bg-wine-50 border-l-4 border-wine-600 p-4 rounded-r-lg">
+        <div className="flex items-start gap-3">
+          <SiPython className="text-3xl text-wine-700 flex-shrink-0 mt-1" />
+          <div className="flex-1">
+            <h4 className="font-display font-bold text-wine-900 text-lg mb-2">Backend Flask Necessário</h4>
+            <p className="text-wine-800 mb-3">
+              Este frontend está pronto para se conectar com o backend Flask.
+            </p>
+            <p className="text-wine-900 font-semibold mb-2">Próximos passos:</p>
+            <ul className="space-y-2">
+              <li className="flex items-start gap-2 text-wine-800">
+                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
+                <span>Implemente as fórmulas do M/M/s/K no backend Python (pasta /backend)</span>
+              </li>
+              <li className="flex items-start gap-2 text-wine-800">
+                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
+                <span>Arquivo: backend/app/models/mmsk.py</span>
+              </li>
+              <li className="flex items-start gap-2 text-wine-800">
+                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
+                <span>Crie o endpoint POST /api/calculate/mmsk</span>
+              </li>
+              <li className="flex items-start gap-2 text-wine-800">
+                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
+                <span>Descomente a chamada de API no código deste componente</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );
