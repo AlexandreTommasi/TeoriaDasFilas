@@ -79,10 +79,25 @@ export interface MM1KInput {
   lambda: number; // Taxa de chegada
   mu: number;     // Taxa de atendimento
   K: number;      // Capacidade máxima do sistema
+  n?: number;     // Número específico de clientes (opcional, para P(n))
 }
 
 export interface MM1KResult extends BaseQueueResult {
-  // TODO: Seus parceiros devem definir os campos de resultado aqui
+  // Medidas básicas
+  rho: number;         // λ/μ (pode ser > 1, pois K limita o sistema)
+  P0: number;          // Probabilidade de 0 clientes
+  L: number;           // Número médio de clientes no sistema
+  Lq: number;          // Número médio de clientes na fila
+  W: number;           // Tempo médio no sistema
+  Wq: number;          // Tempo médio na fila
+  lambdaEfetivo: number; // Taxa efetiva de entrada = λ(1-P_K)
+  PK: number;          // Probabilidade de K clientes (sistema cheio/bloqueio)
+
+  // Probabilidades condicionais
+  Pn?: number;         // P(n) - Probabilidade de n clientes
+
+  // Valor do parâmetro usado
+  n?: number;
 }
 
 // ==========================================
