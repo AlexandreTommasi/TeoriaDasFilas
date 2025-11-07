@@ -133,13 +133,28 @@ export interface MMsKResult extends BaseQueueResult {
 // M/M/1/N - População finita
 // ==========================================
 export interface MM1NInput {
-  lambda: number; // Taxa de chegada por cliente
+  lambda: number; // Taxa de chegada por cliente (quando fora do sistema)
   mu: number;     // Taxa de atendimento
   N: number;      // Tamanho da população
+  n?: number;     // Número específico de clientes (opcional, para P(n))
 }
 
 export interface MM1NResult extends BaseQueueResult {
-  // TODO: Seus parceiros devem definir os campos de resultado aqui
+  // Medidas básicas
+  rho: number;           // N×λ/μ (fator de utilização)
+  P0: number;            // Probabilidade de 0 clientes no sistema
+  L: number;             // Número médio de clientes no sistema
+  Lq: number;            // Número médio de clientes na fila
+  W: number;             // Tempo médio no sistema
+  Wq: number;            // Tempo médio na fila
+  lambdaEfetivo: number; // Taxa efetiva = λ(N-L)
+  numOperacionais: number; // N - L (média de clientes operacionais/fora do sistema)
+
+  // Probabilidades condicionais
+  Pn?: number;           // P(n) - Probabilidade de n clientes
+
+  // Valor do parâmetro usado
+  n?: number;
 }
 
 // ==========================================
