@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Input, Button } from '../../components/common';
-import { ResultDisplay } from '../../components/ResultDisplay';
+import { ResultDisplay } from '../../components/common/ResultDisplay';
 import type { MMsNInput, MMsNResult } from '../../types/models';
 import { SiPython } from 'react-icons/si';
 import { HiCheckCircle, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
