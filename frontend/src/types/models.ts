@@ -43,13 +43,33 @@ export interface MM1Result extends BaseQueueResult {
 // ==========================================
 export interface MMsInput {
   lambda: number; // Taxa de chegada
-  mu: number;     // Taxa de atendimento
+  mu: number;     // Taxa de atendimento por servidor
   s: number;      // Número de servidores
+  n?: number;     // Número específico de clientes (opcional, para P(n))
+  r?: number;     // Valor limite (opcional, para P(n>r))
+  t?: number;     // Valor de tempo (opcional, para P(W>t) e P(Wq>t))
 }
 
 export interface MMsResult extends BaseQueueResult {
-  // TODO: Seus parceiros devem definir os campos de resultado aqui
-  // Exemplo: rho, L, Lq, W, Wq, P0, etc
+  // Medidas básicas
+  rho: number;    // Taxa de ocupação por servidor (λ/(s×μ))
+  P0: number;     // Probabilidade de 0 clientes (sistema ocioso)
+  L: number;      // Número médio de clientes no sistema
+  Lq: number;     // Número médio de clientes na fila
+  W: number;      // Tempo médio no sistema
+  Wq: number;     // Tempo médio na fila
+
+  // Probabilidades condicionais (opcionais, dependem dos inputs)
+  Pn?: number;           // P(n) - Probabilidade de n clientes
+  PnMaiorQueR?: number;  // P(n>r) - Probabilidade de mais de r clientes
+  PWMaiorQueT?: number;  // P(W>t) - Probabilidade tempo no sistema > t
+  PWqMaiorQueT?: number; // P(Wq>t) - Probabilidade tempo na fila > t
+  PWqIgualZero?: number; // P(Wq=0) - Probabilidade de não esperar na fila
+
+  // Valores dos parâmetros usados (para exibição)
+  n?: number;
+  r?: number;
+  t?: number;
 }
 
 // ==========================================
