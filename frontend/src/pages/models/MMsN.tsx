@@ -140,31 +140,31 @@ export const MMsN: React.FC = () => {
       </div>
 
       {/* Quando usar - bem direto */}
-      <div className="mb-6 bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-400 rounded-xl p-5 shadow-lg">
+      <div className="mb-6 bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-400 rounded-xl p-5 shadow-lg">
         <div className="flex items-start gap-3">
-          <HiLightBulb className="text-3xl text-yellow-600 flex-shrink-0" />
+          <HiLightBulb className="text-3xl text-blue-600 flex-shrink-0" />
           <div>
-            <h3 className="font-bold text-yellow-900 text-xl mb-2">Quando usar M/M/s/N?</h3>
-            <div className="text-yellow-900">
+            <h3 className="font-bold text-blue-900 text-xl mb-2">Quando usar M/M/s/N?</h3>
+            <div className="text-blue-900">
               <p className="mb-2">✅ Use quando o exercício tiver:</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <div className="bg-yellow-50 p-2 rounded">
+                <div className="bg-blue-50 p-2 rounded">
                   <strong>✓ MÚLTIPLOS servidores/técnicos (s ≥ 2)</strong>
                 </div>
-                <div className="bg-yellow-50 p-2 rounded">
+                <div className="bg-blue-50 p-2 rounded">
                   <strong>✓ População FINITA de N clientes</strong>
                 </div>
-                <div className="bg-yellow-50 p-2 rounded">
+                <div className="bg-blue-50 p-2 rounded">
                   <strong>✓ Clientes alternando: operando ↔ sistema</strong>
                 </div>
-                <div className="bg-yellow-50 p-2 rounded">
+                <div className="bg-blue-50 p-2 rounded">
                   <strong>✓ Taxa de chegada depende de N-L</strong>
                 </div>
               </div>
               <div className="mt-3 bg-green-100 border border-green-400 p-2 rounded text-sm">
                 <strong>✅ DIFERENÇA:</strong> Taxa efetiva = λ(N-L). Quanto mais clientes no sistema, MENOS chegam!
               </div>
-              <div className="mt-2 bg-yellow-200 p-2 rounded text-sm">
+              <div className="mt-2 bg-blue-200 p-2 rounded text-sm">
                 <strong>💡 Exemplos:</strong> 10 máquinas com 2 técnicos,
                 5 robôs com 2 operadores, equipamentos com vários reparadores
               </div>
