@@ -44,33 +44,24 @@ def calculate_mm1(lambda_: float, mu: float) -> dict:
         }
     """
 
-    # ==========================================
-    # TODO: IMPLEMENTAR VALIDAÇÕES
-    # ==========================================
-    # Validar se lambda > 0 e mu > 0
-    # Validar se lambda < mu (condição de estabilidade)
-    # Se inválido, raise ValueError("mensagem de erro")
+    if not (lambda_ > 0 and mu > 0):
+        raise ValueError("As taxas de chegada (λ) e atendimento (μ) devem ser positivas.")
 
-    # ==========================================
-    # TODO: IMPLEMENTAR FÓRMULAS
-    # ==========================================
-    # rho = ?
-    # L = ?
-    # Lq = ?
-    # W = ?
-    # Wq = ?
-    # P0 = ?
+    if lambda_ >= mu:
+        raise ValueError("Sistema instável: a taxa de chegada (λ) deve ser menor que a taxa de atendimento (μ).")
 
-    # ==========================================
-    # TODO: RETORNAR RESULTADOS
-    # ==========================================
-    # return {
-    #     'rho': rho,
-    #     'L': L,
-    #     'Lq': Lq,
-    #     'W': W,
-    #     'Wq': Wq,
-    #     'P0': P0
-    # }
+    rho = lambda_ / mu
+    L = rho / (1 - rho)
+    Lq = rho**2 / (1 - rho)
+    W = 1 / (mu - lambda_)
+    Wq = lambda_ / (mu * (mu - lambda_))
+    P0 = 1 - rho
 
-    raise NotImplementedError("Modelo M/M/1 ainda não foi implementado. Adicione as fórmulas acima.")
+    return {
+        'rho': rho,
+        'L': L,
+        'Lq': Lq,
+        'W': W,
+        'Wq': Wq,
+        'P0': P0
+    }
