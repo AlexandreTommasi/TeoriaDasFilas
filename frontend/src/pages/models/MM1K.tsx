@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button, ResultDisplay } from '../../components/common';
 import type { MM1KInput, MM1KResult } from '../../types/models';
-import { SiPython } from 'react-icons/si';
-import { HiCheckCircle, HiLightBulb } from 'react-icons/hi';
-// import { calculateMM1K } from '../../services/api'; // Descomentar quando backend estiver pronto
+import { HiLightBulb } from 'react-icons/hi';
+import { calculateMM1K } from '../../services/api';
 
 export const MM1K: React.FC = () => {
   const [inputs, setInputs] = useState<MM1KInput>({
@@ -20,9 +19,25 @@ export const MM1K: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
+
+    // Permitir valores vazios
+    if (value === '') {
+      setInputs({ ...inputs, [field]: undefined });
+      return;
+    }
+
+    // Permitir digitação de decimais (como "0.", ".", "0.5", etc.)
+    // Não converter enquanto estiver digitando
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.') {
+      setInputs({ ...inputs, [field]: value as any });
+      return;
+    }
+
+    // Converter para número
+    const numValue = parseFloat(value);
     setInputs({
       ...inputs,
-      [field]: value === '' ? undefined : parseFloat(value),
+      [field]: isNaN(numValue) ? undefined : numValue,
     });
   };
 
@@ -41,18 +56,12 @@ export const MM1K: React.FC = () => {
       return;
     }
 
-    // ==========================================
-    // Backend necessário
-    // ==========================================
-    // try {
-    //   const result = await calculateMM1K(inputs);
-    //   setResults(result);
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : 'Erro ao calcular');
-    // }
-    // ==========================================
-
-    setError('⚠️ Backend Flask ainda não está rodando.');
+    try {
+      const result = await calculateMM1K(inputs);
+      setResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao calcular');
+    }
   };
 
   const resultItems = results
@@ -387,32 +396,6 @@ export const MM1K: React.FC = () => {
         </div>
       </div>
 
-      {/* Info do backend */}
-      <div className="bg-wine-50 border-l-4 border-wine-600 p-5 rounded-lg">
-        <div className="flex items-start gap-3">
-          <SiPython className="text-2xl text-wine-700 flex-shrink-0 mt-1" />
-          <div className="text-sm">
-            <h4 className="font-bold text-wine-900 mb-2">Backend Necessário</h4>
-            <p className="text-wine-800 mb-2">
-              Esta interface está pronta. Seus colegas de back-end devem:
-            </p>
-            <ul className="space-y-1 text-wine-800">
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Implementar fórmulas do M/M/1/K em Python</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Criar endpoint POST /api/calculate/mm1k</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Retornar todos os resultados calculados</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
