@@ -20,17 +20,13 @@ CORS(app, resources={
 })
 
 # ==========================================
-# TODO: Importar rotas quando implementar
+# Importar e registrar rotas
 # ==========================================
-# from app.routes.queue_routes import queue_bp
-# app.register_blueprint(queue_bp, url_prefix='/api')
+from app.routes.queue_routes import queue_bp
+app.register_blueprint(queue_bp, url_prefix='/api')
 
 
 @app.route('/api/health')
 def health():
     """Endpoint para verificar se o servidor está rodando"""
     return {"status": "ok", "message": "Backend Flask está rodando!"}, 200
-
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
