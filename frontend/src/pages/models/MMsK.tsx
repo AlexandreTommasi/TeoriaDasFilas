@@ -21,9 +21,24 @@ export const MMsK: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
+
+    // Permitir valores vazios
+    if (value === '') {
+      setInputs({ ...inputs, [field]: '' as any });
+      return;
+    }
+
+    // Permitir digitação de decimais e zeros
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
+      setInputs({ ...inputs, [field]: value as any });
+      return;
+    }
+
+    // Converter para número
+    const numValue = parseFloat(value);
     setInputs({
       ...inputs,
-      [field]: value === '' ? undefined : parseFloat(value),
+      [field]: isNaN(numValue) ? '' : numValue,
     });
   };
 
@@ -32,18 +47,25 @@ export const MMsK: React.FC = () => {
     setError('');
     setResults(null);
 
-    if (!inputs.lambda || inputs.lambda <= 0 || !inputs.mu || inputs.mu <= 0) {
+    // Converter valores para número
+    const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
+    const s = typeof inputs.s === 'string' ? parseInt(inputs.s) : inputs.s;
+    const K = typeof inputs.K === 'string' ? parseInt(inputs.K) : inputs.K;
+    const n = inputs.n !== undefined && inputs.n !== '' ? (typeof inputs.n === 'string' ? parseInt(inputs.n) : inputs.n) : undefined;
+
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
       setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (!inputs.s || inputs.s < 2) {
+    if (!s || s < 2) {
       setError('Número de servidores (s) deve ser maior ou igual a 2');
       return;
     }
 
-    if (!inputs.K || inputs.K < inputs.s) {
-      setError(`K (capacidade) deve ser maior ou igual a s (${inputs.s})`);
+    if (!K || K < s) {
+      setError(`K (capacidade) deve ser maior ou igual a s (${s})`);
       return;
     }
 
@@ -51,7 +73,8 @@ export const MMsK: React.FC = () => {
     // Backend necessário
     // ==========================================
     // try {
-    //   const result = await calculateMMsK(inputs);
+    //   const payload = { lambda, mu, s, K, n };
+    //   const result = await calculateMMsK(payload);
     //   setResults(result);
     // } catch (err) {
     //   setError(err instanceof Error ? err.message : 'Erro ao calcular');

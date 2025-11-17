@@ -22,13 +22,12 @@ export const MM1K: React.FC = () => {
 
     // Permitir valores vazios
     if (value === '') {
-      setInputs({ ...inputs, [field]: undefined });
+      setInputs({ ...inputs, [field]: '' as any });
       return;
     }
 
-    // Permitir digitação de decimais (como "0.", ".", "0.5", etc.)
-    // Não converter enquanto estiver digitando
-    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.') {
+    // Permitir digitação de decimais e zeros
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
       setInputs({ ...inputs, [field]: value as any });
       return;
     }
@@ -37,7 +36,7 @@ export const MM1K: React.FC = () => {
     const numValue = parseFloat(value);
     setInputs({
       ...inputs,
-      [field]: isNaN(numValue) ? undefined : numValue,
+      [field]: isNaN(numValue) ? '' : numValue,
     });
   };
 
@@ -46,18 +45,25 @@ export const MM1K: React.FC = () => {
     setError('');
     setResults(null);
 
-    if (!inputs.lambda || inputs.lambda <= 0 || !inputs.mu || inputs.mu <= 0) {
+    // Converter valores para número
+    const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
+    const K = typeof inputs.K === 'string' ? parseInt(inputs.K) : inputs.K;
+    const n = inputs.n !== undefined && inputs.n !== '' ? (typeof inputs.n === 'string' ? parseInt(inputs.n) : inputs.n) : undefined;
+
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
       setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (!inputs.K || inputs.K < 1) {
+    if (!K || K < 1) {
       setError('K (capacidade) deve ser maior ou igual a 1');
       return;
     }
 
     try {
-      const result = await calculateMM1K(inputs);
+      const payload = { lambda, mu, K, n };
+      const result = await calculateMM1K(payload);
       setResults(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao calcular');

@@ -24,13 +24,12 @@ export const MMs: React.FC = () => {
 
     // Permitir valores vazios
     if (value === '') {
-      setInputs({ ...inputs, [field]: undefined });
+      setInputs({ ...inputs, [field]: '' as any });
       return;
     }
 
-    // Permitir digitação de decimais (como "0.", ".", "0.5", etc.)
-    // Não converter enquanto estiver digitando
-    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.') {
+    // Permitir digitação de decimais e zeros
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
       setInputs({ ...inputs, [field]: value as any });
       return;
     }
@@ -39,7 +38,7 @@ export const MMs: React.FC = () => {
     const numValue = parseFloat(value);
     setInputs({
       ...inputs,
-      [field]: isNaN(numValue) ? undefined : numValue,
+      [field]: isNaN(numValue) ? '' : numValue,
     });
   };
 
@@ -48,24 +47,33 @@ export const MMs: React.FC = () => {
     setError('');
     setResults(null);
 
-    if (!inputs.lambda || inputs.lambda <= 0 || !inputs.mu || inputs.mu <= 0) {
+    // Converter valores para número
+    const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
+    const s = typeof inputs.s === 'string' ? parseInt(inputs.s) : inputs.s;
+    const n = inputs.n !== undefined && inputs.n !== '' ? (typeof inputs.n === 'string' ? parseInt(inputs.n) : inputs.n) : undefined;
+    const r = inputs.r !== undefined && inputs.r !== '' ? (typeof inputs.r === 'string' ? parseInt(inputs.r) : inputs.r) : undefined;
+    const t = inputs.t !== undefined && inputs.t !== '' ? (typeof inputs.t === 'string' ? parseFloat(inputs.t) : inputs.t) : undefined;
+
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
       setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (!inputs.s || inputs.s < 2) {
+    if (!s || s < 2) {
       setError('Número de servidores (s) deve ser maior ou igual a 2');
       return;
     }
 
     // Validação da condição de estabilidade: λ < s×μ
-    if (inputs.lambda >= inputs.s * inputs.mu) {
-      setError(`⚠️ Erro: λ deve ser menor que s×μ (${inputs.lambda} < ${inputs.s}×${inputs.mu} = ${inputs.s * inputs.mu})`);
+    if (lambda >= s * mu) {
+      setError(`⚠️ Erro: λ deve ser menor que s×μ (${lambda} < ${s}×${mu} = ${s * mu})`);
       return;
     }
 
     try {
-      const result = await calculateMMs(inputs);
+      const payload = { lambda, mu, s, n, r, t };
+      const result = await calculateMMs(payload);
       setResults(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao calcular');

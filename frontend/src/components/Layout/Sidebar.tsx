@@ -7,7 +7,8 @@ import {
   HiLockClosed,
   HiUserGroup,
   HiChartSquareBar,
-  HiStar
+  HiStar,
+  HiCalculator
 } from 'react-icons/hi';
 import { MdSpeed } from 'react-icons/md';
 
@@ -20,6 +21,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: 'Home', path: '/', icon: <HiHome /> },
+  { name: '🧮 Calculadoras', path: '/helpers', icon: <HiCalculator /> },
   { name: 'M/M/1', path: '/mm1', icon: <HiChartBar /> },
   { name: 'M/M/s>1', path: '/mms', icon: <HiUsers /> },
   { name: 'M/M/1/K', path: '/mm1k', icon: <HiLockClosed /> },

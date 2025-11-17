@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import {
   Home,
+  Helpers,
   MM1,
   MMs,
   MM1K,
@@ -21,6 +22,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/helpers" element={<Helpers />} />
           <Route path="/mm1" element={<MM1 />} />
           <Route path="/mms" element={<MMs />} />
           <Route path="/mm1k" element={<MM1K />} />
