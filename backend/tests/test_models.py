@@ -10,6 +10,7 @@ from app.models.mm1 import calculate_mm1
 from app.models.mms import calculate_mms
 from app.models.mm1k import calculate_mm1k
 from app.models.mmsk import calculate_mmsk
+from app.models.mmsn import calculate_mmsn
 
 class TestMM1(unittest.TestCase):
     """Testes para o modelo M/M/1"""
@@ -353,6 +354,129 @@ class TestMMsK(unittest.TestCase):
         # Lq = lambda_eff * Wq
         expected_Lq = result['lambdaEfetivo'] * result['Wq']
         self.assertAlmostEqual(result['Lq'], expected_Lq, places=4)
+
+class TestMMsN(unittest.TestCase):
+    """Testes para o modelo M/M/s/N"""
+
+    def test_mmsn_basic(self):
+        """Teste básico com valores conhecidos"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        # Verificações básicas
+        self.assertGreater(result['P0'], 0)
+        self.assertLess(result['P0'], 1)
+        self.assertGreaterEqual(result['L'], 0)
+        self.assertLessEqual(result['L'], 10)  # L não pode ser maior que N
+        self.assertGreaterEqual(result['Lq'], 0)
+        self.assertGreaterEqual(result['W'], 0)
+        self.assertGreaterEqual(result['Wq'], 0)
+        # rho = N*lambda/(s*mu) = 10*0.5/(2*1) = 2.5
+        self.assertAlmostEqual(result['rho'], 2.5, places=4)
+
+    def test_mmsn_with_n(self):
+        """Teste com parâmetro n - P(n)"""
+        result = calculate_mmsn(0.5, 1, 2, 10, n=5)
+        self.assertIn('Pn', result)
+        self.assertIn('n', result)
+        self.assertEqual(result['n'], 5)
+        self.assertGreater(result['Pn'], 0)
+        self.assertLess(result['Pn'], 1)
+
+    def test_mmsn_with_n_equal_N(self):
+        """Teste com n = N (toda população no sistema)"""
+        result = calculate_mmsn(0.5, 1, 2, 10, n=10)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 10)
+        self.assertGreater(result['Pn'], 0)
+        self.assertLess(result['Pn'], 1)
+
+    def test_mmsn_with_n_equal_0(self):
+        """Teste com n = 0"""
+        result = calculate_mmsn(0.5, 1, 2, 10, n=0)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 0)
+        # P(0) deve ser igual a P0
+        self.assertAlmostEqual(result['Pn'], result['P0'], places=6)
+
+    def test_mmsn_n_less_than_s(self):
+        """Teste com n < s (todos os servidores não estão ocupados)"""
+        result = calculate_mmsn(0.5, 1, 3, 10, n=2)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 2)
+        self.assertGreater(result['Pn'], 0)
+
+    def test_mmsn_n_greater_than_s(self):
+        """Teste com n > s (fila formada)"""
+        result = calculate_mmsn(0.5, 1, 2, 10, n=5)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 5)
+        self.assertGreater(result['Pn'], 0)
+
+    def test_mmsn_n_greater_than_N(self):
+        """Teste de validação: n > N deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsn(0.5, 1, 2, 10, n=11)
+
+    def test_mmsn_negative_n(self):
+        """Teste de validação: n negativo deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsn(0.5, 1, 2, 10, n=-1)
+
+    def test_mmsn_N_less_than_s(self):
+        """Teste de validação: N <= s deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsn(0.5, 1, 3, 2)
+
+    def test_mmsn_N_equal_s(self):
+        """Teste de validação: N = s deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsn(0.5, 1, 3, 3)
+
+    def test_mmsn_L_less_than_N(self):
+        """L deve ser menor ou igual a N"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        self.assertLessEqual(result['L'], 10)
+
+    def test_mmsn_consistency_L_Lq(self):
+        """L deve ser maior ou igual a Lq"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        self.assertGreaterEqual(result['L'], result['Lq'])
+
+    def test_mmsn_num_operacionais(self):
+        """Número operacionais deve ser N - L"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        expected_num_op = 10 - result['L']
+        self.assertAlmostEqual(result['numOperacionais'], expected_num_op, places=6)
+
+    def test_mmsn_lambda_efetivo(self):
+        """Lambda efetivo deve ser lambda * (N - L)"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        expected_lambda_eff = 0.5 * (10 - result['L'])
+        self.assertAlmostEqual(result['lambdaEfetivo'], expected_lambda_eff, places=6)
+
+    def test_mmsn_little_law(self):
+        """Verificar Lei de Little: L = lambda_eff * W e Lq = lambda_eff * Wq"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        # L = lambda_eff * W
+        expected_L = result['lambdaEfetivo'] * result['W']
+        self.assertAlmostEqual(result['L'], expected_L, places=4)
+        # Lq = lambda_eff * Wq
+        expected_Lq = result['lambdaEfetivo'] * result['Wq']
+        self.assertAlmostEqual(result['Lq'], expected_Lq, places=4)
+
+    def test_mmsn_PWqIgualZero(self):
+        """P(Wq=0) deve estar entre 0 e 1"""
+        result = calculate_mmsn(0.5, 1, 2, 10)
+        self.assertGreaterEqual(result['PWqIgualZero'], 0)
+        self.assertLessEqual(result['PWqIgualZero'], 1)
+
+    def test_mmsn_sum_probabilities(self):
+        """Soma de todas as probabilidades P(n) deve ser aproximadamente 1"""
+        result_base = calculate_mmsn(0.5, 1, 2, 10)
+        total_prob = 0
+        for i in range(11):  # 0 até N=10
+            result = calculate_mmsn(0.5, 1, 2, 10, n=i)
+            total_prob += result['Pn']
+        self.assertAlmostEqual(total_prob, 1.0, places=6)
 
 if __name__ == '__main__':
     unittest.main()

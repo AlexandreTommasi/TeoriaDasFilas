@@ -3,6 +3,7 @@ from app.models.mm1 import calculate_mm1
 from app.models.mms import calculate_mms
 from app.models.mm1k import calculate_mm1k
 from app.models.mmsk import calculate_mmsk
+from app.models.mmsn import calculate_mmsn
 from app.models.mg1 import calculate_mg1
 
 queue_bp = Blueprint('queue', __name__)
@@ -89,6 +90,28 @@ def api_calculate_mmsk():
         n = int(data['n']) if 'n' in data and data['n'] is not None and data['n'] != '' else None
 
         result = calculate_mmsk(lambda_, mu, s, K, n=n)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@queue_bp.route('/calculate/mmsn', methods=['POST'])
+def api_calculate_mmsn():
+    try:
+        data = request.get_json()
+        if not data or 'lambda' not in data or 'mu' not in data or 's' not in data or 'N' not in data:
+            return jsonify({'error': 'Campos obrigatórios: lambda, mu, s, N'}), 400
+
+        lambda_ = float(data['lambda'])
+        mu = float(data['mu'])
+        s = int(data['s'])
+        N = int(data['N'])
+
+        # Parâmetros opcionais
+        n = int(data['n']) if 'n' in data and data['n'] is not None and data['n'] != '' else None
+
+        result = calculate_mmsn(lambda_, mu, s, N, n=n)
         return jsonify(result), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
