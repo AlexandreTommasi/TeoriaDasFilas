@@ -20,9 +20,24 @@ export const MM1N: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value;
+
+    // Permitir valores vazios
+    if (value === '') {
+      setInputs({ ...inputs, [field]: '' as any });
+      return;
+    }
+
+    // Permitir digitação de decimais e zeros
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
+      setInputs({ ...inputs, [field]: value as any });
+      return;
+    }
+
+    // Converter para número
+    const numValue = parseFloat(value);
     setInputs({
       ...inputs,
-      [field]: value === '' ? undefined : parseFloat(value),
+      [field]: isNaN(numValue) ? '' : numValue,
     });
   };
 
@@ -31,12 +46,18 @@ export const MM1N: React.FC = () => {
     setError('');
     setResults(null);
 
-    if (!inputs.lambda || inputs.lambda <= 0 || !inputs.mu || inputs.mu <= 0) {
+    // Converter valores para número
+    const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
+    const N = typeof inputs.N === 'string' ? parseInt(inputs.N) : inputs.N;
+    const n = inputs.n !== undefined && inputs.n !== '' ? (typeof inputs.n === 'string' ? parseInt(inputs.n) : inputs.n) : undefined;
+
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
       setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (!inputs.N || inputs.N < 1) {
+    if (!N || N < 1) {
       setError('N (população) deve ser maior ou igual a 1');
       return;
     }
@@ -45,7 +66,8 @@ export const MM1N: React.FC = () => {
     // Backend necessário
     // ==========================================
     // try {
-    //   const result = await calculateMM1N(inputs);
+    //   const payload = { lambda, mu, N, n };
+    //   const result = await calculateMM1N(payload);
     //   setResults(result);
     // } catch (err) {
     //   setError(err instanceof Error ? err.message : 'Erro ao calcular');

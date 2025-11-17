@@ -23,13 +23,12 @@ export const MM1: React.FC = () => {
 
     // Permitir valores vazios
     if (value === '') {
-      setInputs({ ...inputs, [field]: undefined });
+      setInputs({ ...inputs, [field]: '' as any });
       return;
     }
 
-    // Permitir digitação de decimais (como "0.", ".", "0.5", etc.)
-    // Não converter enquanto estiver digitando
-    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.') {
+    // Permitir digitação de decimais e zeros
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
       setInputs({ ...inputs, [field]: value as any });
       return;
     }
@@ -38,7 +37,7 @@ export const MM1: React.FC = () => {
     const numValue = parseFloat(value);
     setInputs({
       ...inputs,
-      [field]: isNaN(numValue) ? undefined : numValue,
+      [field]: isNaN(numValue) ? '' : numValue,
     });
   };
 
@@ -47,18 +46,26 @@ export const MM1: React.FC = () => {
     setError('');
     setResults(null);
 
-    if (!inputs.lambda || inputs.lambda <= 0 || !inputs.mu || inputs.mu <= 0) {
+    // Converter valores para número
+    const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
+    const n = inputs.n !== undefined && inputs.n !== '' ? (typeof inputs.n === 'string' ? parseInt(inputs.n) : inputs.n) : undefined;
+    const r = inputs.r !== undefined && inputs.r !== '' ? (typeof inputs.r === 'string' ? parseInt(inputs.r) : inputs.r) : undefined;
+    const t = inputs.t !== undefined && inputs.t !== '' ? (typeof inputs.t === 'string' ? parseFloat(inputs.t) : inputs.t) : undefined;
+
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
       setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (inputs.lambda >= inputs.mu) {
+    if (lambda >= mu) {
       setError('⚠️ Erro: λ deve ser menor que μ (condição de estabilidade)');
       return;
     }
 
     try {
-      const result = await calculateMM1(inputs);
+      const payload = { lambda, mu, n, r, t };
+      const result = await calculateMM1(payload);
       setResults(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao calcular');
