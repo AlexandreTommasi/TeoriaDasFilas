@@ -90,30 +90,37 @@ if __name__ == "__main__":
 
     # --- ENTRADAS DO USUÁRIO ---
     lambda_entrada = obter_entrada_float("Digite a Taxa de Chegada (λ): ")
-    mu_entrada = obter_entrada_float("Digite a Taxa de Serviço (μ): ")
+    tempo_medio_entrada = obter_entrada_float("Digite o Tempo Médio de Serviço E[S] (em horas): ")
 
-    # Perguntar se o usuário quer que o programa calcule σ automaticamente a partir de 1/μ
+    # Perguntar se o usuário quer que o programa calcule σ automaticamente
+    print("\nComo deseja informar a variância?")
+    print("1 - Tempo EXPONENCIAL (M/M/1): Var[S] = (E[S])²")
+    print("2 - Tempo CONSTANTE (M/D/1): Var[S] = 0")
+    print("3 - Informar a variância manualmente")
+
     while True:
-        escolha = input("Deseja que eu calcule automaticamente o desvio-padrão a partir de 1/μ? (s/n): ").strip().lower()
-        if escolha in ("s", "n"):
+        escolha = input("Escolha (1/2/3): ").strip()
+        if escolha in ("1", "2", "3"):
             break
-        print("Entrada inválida. Digite 's' para sim ou 'n' para não.")
+        print("Entrada inválida. Digite '1', '2' ou '3'.")
 
-    if escolha == "s":
-        # Usar a fórmula solicitada: σ = 1/μ (nota: isso é assumir desvio igual ao tempo médio de serviço)
-        desvio_padrao_entrada = 1.0 / mu_entrada
-        print(f"(Info) Desvio-padrão calculado automaticamente: σ = 1/μ = {desvio_padrao_entrada:.6g}")
+    if escolha == "1":
+        # Distribuição exponencial: Var[S] = (E[S])²
+        variancia_entrada = tempo_medio_entrada ** 2
+        print(f"(Info) Variância para tempo exponencial: σ² = (E[S])² = ({tempo_medio_entrada:.6g})² = {variancia_entrada:.6g}")
+    elif escolha == "2":
+        # Tempo constante: Var[S] = 0
+        variancia_entrada = 0
+        print(f"(Info) Variância para tempo constante: σ² = 0")
     else:
-        # Perguntar ao usuário o desvio-padrão manualmente
-        desvio_padrao_entrada = obter_entrada_float("Digite o Desvio-Padrão do tempo de serviço (σ): ")
-
-    variancia_entrada = desvio_padrao_entrada ** 2
+        # Variância manual
+        variancia_entrada = obter_entrada_float("Digite a Variância do tempo de serviço (σ²): ")
+        print(f"(Info) Variância informada: σ² = {variancia_entrada:.6g}")
 
     print("-" * 30)
-    print(f"(Info) Variância usada: σ² = {desvio_padrao_entrada:.6g}² = {variancia_entrada:.6g}")
 
-    # Chamar a função com as entradas
-    resultados = calcular_metricas_mg1(lambda_entrada, mu_entrada, variancia_entrada)
+    # Chamar a função com as entradas CORRETAS
+    resultados = calcular_metricas_mg1(lambda_entrada, tempo_medio_entrada, variancia_entrada)
 
     # Imprimir os resultados formatados
     if resultados:
