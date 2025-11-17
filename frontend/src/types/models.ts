@@ -191,13 +191,18 @@ export interface MMsNResult extends BaseQueueResult {
 // M/G/1 - Distribuição geral de atendimento
 // ==========================================
 export interface MG1Input {
-  lambda: number;     // Taxa de chegada
-  meanService: number; // Tempo médio de atendimento
-  varService: number;  // Variância do tempo de atendimento
+  lambda: number | string;     // Taxa de chegada
+  meanService: number | string; // Tempo médio de atendimento
+  varService: number | string;  // Variância do tempo de atendimento
 }
 
 export interface MG1Result extends BaseQueueResult {
-  // TODO: Seus parceiros devem definir os campos de resultado aqui
+  rho: number;    // Taxa de utilização (λ/μ)
+  P0: number;     // Probabilidade de 0 clientes no sistema
+  Lq: number;     // Número médio de clientes na fila (Pollaczek-Khinchin)
+  Wq: number;     // Tempo médio de espera na fila
+  L: number;      // Número médio de clientes no sistema
+  W: number;      // Tempo médio de espera no sistema
 }
 
 // ==========================================

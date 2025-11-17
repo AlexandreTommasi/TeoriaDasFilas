@@ -1,45 +1,65 @@
 import math
 
-def calcular_metricas_mg1(lambda_taxa, mu_taxa, variancia):
+def calculate_mg1(lambda_val, mean_service, var_service):
+    """
+    Interface para API - calcula métricas M/G/1
+
+    Argumentos:
+    lambda_val (float): Taxa de chegada (λ)
+    mean_service (float): Tempo médio de serviço (E[S])
+    var_service (float): Variância do tempo de serviço (σ²)
+
+    Retorna:
+    dict: Métricas calculadas
+
+    Lança:
+    ValueError: Se o sistema for instável (ρ >= 1)
+    """
+    return calcular_metricas_mg1(lambda_val, mean_service, var_service)
+
+def calcular_metricas_mg1(lambda_taxa, tempo_medio_servico, variancia):
     """
     Calcula as métricas de efetividade para um sistema de filas M/G/1
     com base nas fórmulas fornecidas (Lq, Wq, L, W, P0).
 
     Argumentos:
     lambda_taxa (float): Taxa de chegada (λ)
-    mu_taxa (float): Taxa de serviço (μ)
+    tempo_medio_servico (float): Tempo médio de serviço (E[S] = 1/μ)
     variancia (float): Variância do tempo de serviço (σ²)
-    
+
     Retorna:
     dict: Um dicionário com as métricas calculadas ou None se o sistema for instável.
     """
 
-    # --- 1. Calcular Rho (ρ) ---
+    # --- 1. Calcular μ (taxa de serviço) a partir do tempo médio ---
+    mu_taxa = 1.0 / tempo_medio_servico
+
+    # --- 2. Calcular Rho (ρ) ---
     rho = lambda_taxa / mu_taxa
 
-    # --- 2. Verificar estabilidade ---(nao sei se e necessario)
+    # --- 3. Verificar estabilidade ---
     if rho >= 1:
-        print(f"ERRO: Sistema instável. Taxa de utilização (ρ) é {rho:.4f} (deve ser < 1).")
-        return None
+        raise ValueError(f"Sistema instável. Taxa de utilização (ρ) é {rho:.4f} (deve ser < 1).")
 
-    # --- 3. Calcular P0 (Probabilidade de 0 clientes) ---
+    # --- 4. Calcular P0 (Probabilidade de 0 clientes) ---
     P0 = 1 - rho
 
-    # --- 4. Calcular Lq (Número médio de clientes na fila) ---
+    # --- 5. Calcular Lq (Número médio de clientes na fila) ---
+    # Fórmula de Pollaczek-Khinchin
     numerador_Lq = (lambda_taxa**2 * variancia) + (rho**2)
     denominador_Lq = 2 * (1 - rho)
     Lq = numerador_Lq / denominador_Lq
 
-    # --- 5. Calcular Wq (Tempo médio de espera na fila) ---
+    # --- 6. Calcular Wq (Tempo médio de espera na fila) ---
     Wq = Lq / lambda_taxa
 
-    # --- 6. Calcular L (Número médio de clientes no sistema) ---
+    # --- 7. Calcular L (Número médio de clientes no sistema) ---
     L = rho + Lq
 
-    # --- 7. Calcular W (Tempo médio de espera no sistema) ---
-    W = Wq + (1 / mu_taxa)
+    # --- 8. Calcular W (Tempo médio de espera no sistema) ---
+    W = Wq + tempo_medio_servico
 
-    # --- 8. Retornar os resultados ---
+    # --- 9. Retornar os resultados ---
     metricas = {
         "rho": rho,
         "P0": P0,
