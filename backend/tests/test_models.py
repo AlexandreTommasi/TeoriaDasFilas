@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app.models.mm1 import calculate_mm1
 from app.models.mms import calculate_mms
 from app.models.mm1k import calculate_mm1k
+from app.models.mmsk import calculate_mmsk
 
 class TestMM1(unittest.TestCase):
     """Testes para o modelo M/M/1"""
@@ -249,6 +250,109 @@ class TestMM1K(unittest.TestCase):
         # Sistema deve continuar estável devido ao limite K
         self.assertGreater(result['P0'], 0)
         self.assertLess(result['P0'], 1)
+
+class TestMMsK(unittest.TestCase):
+    """Testes para o modelo M/M/s/K"""
+
+    def test_mmsk_basic(self):
+        """Teste básico com valores conhecidos"""
+        result = calculate_mmsk(3, 2, 2, 5)
+        # Verificações básicas
+        self.assertGreater(result['P0'], 0)
+        self.assertLess(result['P0'], 1)
+        self.assertGreater(result['PK'], 0)
+        self.assertLess(result['PK'], 1)
+        self.assertGreaterEqual(result['L'], 0)
+        self.assertGreaterEqual(result['Lq'], 0)
+        self.assertGreaterEqual(result['W'], 0)
+        self.assertGreaterEqual(result['Wq'], 0)
+        # rho = lambda/(s*mu) = 3/(2*2) = 0.75
+        self.assertAlmostEqual(result['rho'], 0.75, places=4)
+
+    def test_mmsk_with_n(self):
+        """Teste com parâmetro n - P(n)"""
+        result = calculate_mmsk(3, 2, 2, 5, n=3)
+        self.assertIn('Pn', result)
+        self.assertIn('n', result)
+        self.assertEqual(result['n'], 3)
+        self.assertGreater(result['Pn'], 0)
+        self.assertLess(result['Pn'], 1)
+
+    def test_mmsk_with_n_equal_K(self):
+        """Teste com n = K"""
+        result = calculate_mmsk(3, 2, 2, 5, n=5)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 5)
+        # P(K) deve ser igual a PK
+        self.assertAlmostEqual(result['Pn'], result['PK'], places=6)
+
+    def test_mmsk_with_n_equal_0(self):
+        """Teste com n = 0"""
+        result = calculate_mmsk(3, 2, 2, 5, n=0)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 0)
+        # P(0) deve ser igual a P0
+        self.assertAlmostEqual(result['Pn'], result['P0'], places=6)
+
+    def test_mmsk_n_less_than_s(self):
+        """Teste com n < s (todos os servidores não estão ocupados)"""
+        result = calculate_mmsk(3, 2, 3, 6, n=1)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 1)
+        self.assertGreater(result['Pn'], 0)
+
+    def test_mmsk_n_greater_than_s(self):
+        """Teste com n > s (fila formada)"""
+        result = calculate_mmsk(3, 2, 2, 5, n=4)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 4)
+        self.assertGreater(result['Pn'], 0)
+
+    def test_mmsk_n_greater_than_K(self):
+        """Teste de validação: n > K deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsk(3, 2, 2, 5, n=6)
+
+    def test_mmsk_negative_n(self):
+        """Teste de validação: n negativo deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsk(3, 2, 2, 5, n=-1)
+
+    def test_mmsk_K_less_than_s(self):
+        """Teste de validação: K < s deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mmsk(3, 2, 3, 2)
+
+    def test_mmsk_lambda_eff_less_than_lambda(self):
+        """Lambda efetivo deve ser menor ou igual a lambda"""
+        result = calculate_mmsk(5, 2, 2, 4)
+        self.assertLessEqual(result['lambdaEfetivo'], 5)
+        # lambda_eff = lambda * (1 - PK)
+        expected_lambda_eff = 5 * (1 - result['PK'])
+        self.assertAlmostEqual(result['lambdaEfetivo'], expected_lambda_eff, places=6)
+
+    def test_mmsk_rho_equal_1(self):
+        """Teste com rho = 1"""
+        # lambda/(s*mu) = 1 => lambda = s*mu
+        result = calculate_mmsk(4, 2, 2, 5)
+        self.assertAlmostEqual(result['rho'], 1.0, places=4)
+        self.assertGreater(result['P0'], 0)
+        self.assertGreater(result['PK'], 0)
+
+    def test_mmsk_consistency_L_Lq(self):
+        """L deve ser maior ou igual a Lq"""
+        result = calculate_mmsk(3, 2, 2, 5)
+        self.assertGreaterEqual(result['L'], result['Lq'])
+
+    def test_mmsk_little_law(self):
+        """Verificar Lei de Little: L = lambda_eff * W e Lq = lambda_eff * Wq"""
+        result = calculate_mmsk(3, 2, 2, 5)
+        # L = lambda_eff * W
+        expected_L = result['lambdaEfetivo'] * result['W']
+        self.assertAlmostEqual(result['L'], expected_L, places=4)
+        # Lq = lambda_eff * Wq
+        expected_Lq = result['lambdaEfetivo'] * result['Wq']
+        self.assertAlmostEqual(result['Lq'], expected_Lq, places=4)
 
 if __name__ == '__main__':
     unittest.main()
