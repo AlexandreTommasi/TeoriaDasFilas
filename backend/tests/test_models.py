@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app.models.mm1 import calculate_mm1
 from app.models.mms import calculate_mms
 from app.models.mm1k import calculate_mm1k
+from app.models.mm1n import calculate_mm1n
 from app.models.mmsk import calculate_mmsk
 from app.models.mmsn import calculate_mmsn
 
@@ -477,6 +478,110 @@ class TestMMsN(unittest.TestCase):
             result = calculate_mmsn(0.5, 1, 2, 10, n=i)
             total_prob += result['Pn']
         self.assertAlmostEqual(total_prob, 1.0, places=6)
+
+class TestMM1N(unittest.TestCase):
+    """Testes para o modelo M/M/1/N"""
+
+    def test_mm1n_basic(self):
+        """Teste básico com valores conhecidos"""
+        result = calculate_mm1n(0.5, 1, 10)
+        # Verificações básicas
+        self.assertGreater(result['P0'], 0)
+        self.assertLess(result['P0'], 1)
+        self.assertGreaterEqual(result['L'], 0)
+        self.assertLessEqual(result['L'], 10)  # L não pode ser maior que N
+        self.assertGreaterEqual(result['Lq'], 0)
+        self.assertGreaterEqual(result['W'], 0)
+        self.assertGreaterEqual(result['Wq'], 0)
+        # rho = N*lambda/mu = 10*0.5/1 = 5
+        self.assertAlmostEqual(result['rho'], 5.0, places=4)
+
+    def test_mm1n_with_n(self):
+        """Teste com parâmetro n - P(n)"""
+        result = calculate_mm1n(0.5, 1, 10, n=5)
+        self.assertIn('Pn', result)
+        self.assertIn('n', result)
+        self.assertEqual(result['n'], 5)
+        self.assertGreater(result['Pn'], 0)
+        self.assertLess(result['Pn'], 1)
+
+    def test_mm1n_with_n_equal_N(self):
+        """Teste com n = N (toda população no sistema)"""
+        result = calculate_mm1n(0.5, 1, 10, n=10)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 10)
+        self.assertGreater(result['Pn'], 0)
+        self.assertLess(result['Pn'], 1)
+
+    def test_mm1n_with_n_equal_0(self):
+        """Teste com n = 0"""
+        result = calculate_mm1n(0.5, 1, 10, n=0)
+        self.assertIn('Pn', result)
+        self.assertEqual(result['n'], 0)
+        # P(0) deve ser igual a P0
+        self.assertAlmostEqual(result['Pn'], result['P0'], places=6)
+
+    def test_mm1n_n_greater_than_N(self):
+        """Teste de validação: n > N deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mm1n(0.5, 1, 10, n=11)
+
+    def test_mm1n_negative_n(self):
+        """Teste de validação: n negativo deve dar erro"""
+        with self.assertRaises(ValueError):
+            calculate_mm1n(0.5, 1, 10, n=-1)
+
+    def test_mm1n_N_equal_1(self):
+        """Teste com N = 1 (caso mínimo)"""
+        result = calculate_mm1n(0.5, 1, 1)
+        self.assertGreater(result['P0'], 0)
+        self.assertLessEqual(result['L'], 1)
+
+    def test_mm1n_L_less_than_N(self):
+        """L deve ser menor ou igual a N"""
+        result = calculate_mm1n(0.5, 1, 10)
+        self.assertLessEqual(result['L'], 10)
+
+    def test_mm1n_consistency_L_Lq(self):
+        """L deve ser maior ou igual a Lq"""
+        result = calculate_mm1n(0.5, 1, 10)
+        self.assertGreaterEqual(result['L'], result['Lq'])
+
+    def test_mm1n_num_operacionais(self):
+        """Número operacionais deve ser N - L"""
+        result = calculate_mm1n(0.5, 1, 10)
+        expected_num_op = 10 - result['L']
+        self.assertAlmostEqual(result['numOperacionais'], expected_num_op, places=6)
+
+    def test_mm1n_lambda_efetivo(self):
+        """Lambda efetivo deve ser lambda * (N - L)"""
+        result = calculate_mm1n(0.5, 1, 10)
+        expected_lambda_eff = 0.5 * (10 - result['L'])
+        self.assertAlmostEqual(result['lambdaEfetivo'], expected_lambda_eff, places=6)
+
+    def test_mm1n_little_law(self):
+        """Verificar Lei de Little: L = lambda_eff * W e Lq = lambda_eff * Wq"""
+        result = calculate_mm1n(0.5, 1, 10)
+        # L = lambda_eff * W
+        expected_L = result['lambdaEfetivo'] * result['W']
+        self.assertAlmostEqual(result['L'], expected_L, places=4)
+        # Lq = lambda_eff * Wq
+        expected_Lq = result['lambdaEfetivo'] * result['Wq']
+        self.assertAlmostEqual(result['Lq'], expected_Lq, places=4)
+
+    def test_mm1n_sum_probabilities(self):
+        """Soma de todas as probabilidades P(n) deve ser aproximadamente 1"""
+        total_prob = 0
+        for i in range(11):  # 0 até N=10
+            result = calculate_mm1n(0.5, 1, 10, n=i)
+            total_prob += result['Pn']
+        self.assertAlmostEqual(total_prob, 1.0, places=6)
+
+    def test_mm1n_Lq_relationship(self):
+        """Lq deve ser L - (1 - P0) aproximadamente"""
+        result = calculate_mm1n(0.5, 1, 10)
+        expected_Lq = result['L'] - (1 - result['P0'])
+        self.assertAlmostEqual(result['Lq'], expected_Lq, places=4)
 
 if __name__ == '__main__':
     unittest.main()

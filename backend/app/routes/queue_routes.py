@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from app.models.mm1 import calculate_mm1
 from app.models.mms import calculate_mms
 from app.models.mm1k import calculate_mm1k
+from app.models.mm1n import calculate_mm1n
 from app.models.mmsk import calculate_mmsk
 from app.models.mmsn import calculate_mmsn
 from app.models.mg1 import calculate_mg1
@@ -68,6 +69,27 @@ def api_calculate_mm1k():
         n = int(data['n']) if 'n' in data and data['n'] is not None and data['n'] != '' else None
 
         result = calculate_mm1k(lambda_, mu, K, n=n)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@queue_bp.route('/calculate/mm1n', methods=['POST'])
+def api_calculate_mm1n():
+    try:
+        data = request.get_json()
+        if not data or 'lambda' not in data or 'mu' not in data or 'N' not in data:
+            return jsonify({'error': 'Campos obrigatórios: lambda, mu, N'}), 400
+
+        lambda_ = float(data['lambda'])
+        mu = float(data['mu'])
+        N = int(data['N'])
+
+        # Parâmetros opcionais
+        n = int(data['n']) if 'n' in data and data['n'] is not None and data['n'] != '' else None
+
+        result = calculate_mm1n(lambda_, mu, N, n=n)
         return jsonify(result), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
