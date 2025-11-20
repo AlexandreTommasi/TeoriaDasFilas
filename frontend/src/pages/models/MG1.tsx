@@ -184,7 +184,6 @@ export const MG1: React.FC = () => {
                     placeholder="Ex: 4"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Chegadas por unidade de tempo
@@ -198,7 +197,6 @@ export const MG1: React.FC = () => {
                     placeholder="Ex: 0.1667"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Tempo médio (não é taxa!)
@@ -212,7 +210,6 @@ export const MG1: React.FC = () => {
                     placeholder="Ex: 0.0278"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     σ² = variância do tempo

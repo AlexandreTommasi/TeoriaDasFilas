@@ -230,7 +230,6 @@ export const MMs: React.FC = () => {
                     placeholder="Ex: 30"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Clientes que chegam por unidade de tempo
@@ -244,7 +243,6 @@ export const MMs: React.FC = () => {
                     placeholder="Ex: 20"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Clientes que CADA servidor atende por tempo
@@ -258,7 +256,6 @@ export const MMs: React.FC = () => {
                     placeholder="Ex: 2"
                     required
                     min={2}
-                    step="1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Quantos atendentes/caixas/servidores
@@ -266,8 +263,8 @@ export const MMs: React.FC = () => {
                 </div>
               </div>
               <div className="mt-3 bg-yellow-50 border border-yellow-300 p-3 rounded text-sm">
-                <p><strong>📊 Capacidade total do sistema:</strong> {inputs.s && inputs.mu ? `s×μ = ${inputs.s}×${inputs.mu} = ${inputs.s * inputs.mu} clientes/tempo` : 'Preencha s e μ'}</p>
-                <p className="mt-1"><strong>🎯 Para estabilidade:</strong> λ deve ser menor que {inputs.s && inputs.mu ? (inputs.s * inputs.mu) : 's×μ'}</p>
+                <p><strong>📊 Capacidade total do sistema:</strong> {inputs.s && inputs.mu ? `s×μ = ${inputs.s}×${inputs.mu} = ${Number(inputs.s) * Number(inputs.mu)} clientes/tempo` : 'Preencha s e μ'}</p>
+                <p className="mt-1"><strong>🎯 Para estabilidade:</strong> λ deve ser menor que {inputs.s && inputs.mu ? (Number(inputs.s) * Number(inputs.mu)) : 's×μ'}</p>
               </div>
             </div>
 
@@ -285,7 +282,6 @@ export const MMs: React.FC = () => {
                     onChange={handleInputChange('n')}
                     placeholder="Ex: 3"
                     min={0}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n)</strong>
@@ -298,7 +294,6 @@ export const MMs: React.FC = () => {
                     onChange={handleInputChange('r')}
                     placeholder="Ex: 5"
                     min={0}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n&gt;r)</strong>
@@ -311,7 +306,6 @@ export const MMs: React.FC = () => {
                     onChange={handleInputChange('t')}
                     placeholder="Ex: 3"
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para <strong>P(W&gt;t)</strong> e <strong>P(Wq&gt;t)</strong>
