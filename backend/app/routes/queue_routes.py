@@ -144,14 +144,21 @@ def api_calculate_mmsn():
 def api_calculate_mg1():
     try:
         data = request.get_json()
-        if not data or 'lambda' not in data or 'meanService' not in data or 'varService' not in data:
-            return jsonify({'error': 'Campos obrigatórios: lambda, meanService, varService'}), 400
+        if not data or 'lambda' not in data or 'mu' not in data:
+            return jsonify({'error': 'Campos obrigatórios: lambda, mu'}), 400
 
         lambda_ = float(data['lambda'])
-        mean_service = float(data['meanService'])
-        var_service = float(data['varService'])
+        mu = float(data['mu'])
 
-        result = calculate_mg1(lambda_, mean_service, var_service)
+        # varService é opcional - se não informar, usa σ = 1/μ (desvio = tempo médio)
+        if 'varService' in data and data['varService'] is not None and data['varService'] != '':
+            var_service = float(data['varService'])
+        else:
+            # Calcular automaticamente: σ = 1/μ, então σ² = (1/μ)²
+            desvio_padrao = 1.0 / mu
+            var_service = desvio_padrao ** 2
+
+        result = calculate_mg1(lambda_, mu, var_service)
         return jsonify(result), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400

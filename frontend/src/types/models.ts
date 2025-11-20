@@ -3,7 +3,7 @@
 // ==========================================
 
 export interface BaseQueueResult {
-  [key: string]: number | string;
+  [key: string]: number | string | undefined;
 }
 
 // ==========================================
@@ -84,19 +84,19 @@ export interface MM1KInput {
 
 export interface MM1KResult extends BaseQueueResult {
   // Medidas básicas
-  rho: number;         // λ/μ (pode ser > 1, pois K limita o sistema)
-  P0: number;          // Probabilidade de 0 clientes
-  L: number;           // Número médio de clientes no sistema
-  Lq: number;          // Número médio de clientes na fila
-  W: number;           // Tempo médio no sistema
-  Wq: number;          // Tempo médio na fila
+  rho: number;           // λ/μ (pode ser > 1, pois K limita o sistema)
+  P0: number;            // Probabilidade de 0 clientes
+  L: number;             // Número médio de clientes no sistema
+  Lq: number;            // Número médio de clientes na fila
+  W: number;             // Tempo médio no sistema
+  Wq: number;            // Tempo médio na fila
   lambdaEfetivo: number; // Taxa efetiva de entrada = λ(1-P_K)
-  PK: number;          // Probabilidade de K clientes (sistema cheio/bloqueio)
+  PK: number;            // Probabilidade de K clientes (sistema cheio/bloqueio)
 
   // Probabilidades condicionais
-  Pn?: number;         // P(n) - Probabilidade de n clientes
+  Pn?: number;           // P(n) - Probabilidade de n clientes
 
-  // Valor do parâmetro usado
+  // Valores dos parâmetros usados (para exibição)
   n?: number;
 }
 
@@ -125,7 +125,7 @@ export interface MMsKResult extends BaseQueueResult {
   // Probabilidades condicionais
   Pn?: number;           // P(n) - Probabilidade de n clientes
 
-  // Valor do parâmetro usado
+  // Valores dos parâmetros usados (para exibição)
   n?: number;
 }
 
@@ -141,19 +141,19 @@ export interface MM1NInput {
 
 export interface MM1NResult extends BaseQueueResult {
   // Medidas básicas
-  rho: number;           // N×λ/μ (fator de utilização)
-  P0: number;            // Probabilidade de 0 clientes no sistema
-  L: number;             // Número médio de clientes no sistema
-  Lq: number;            // Número médio de clientes na fila
-  W: number;             // Tempo médio no sistema
-  Wq: number;            // Tempo médio na fila
-  lambdaEfetivo: number; // Taxa efetiva = λ(N-L)
+  rho: number;             // N×λ/μ (fator de utilização)
+  P0: number;              // Probabilidade de 0 clientes no sistema
+  L: number;               // Número médio de clientes no sistema
+  Lq: number;              // Número médio de clientes na fila
+  W: number;               // Tempo médio no sistema
+  Wq: number;              // Tempo médio na fila
+  lambdaEfetivo: number;   // Taxa efetiva = λ(N-L)
   numOperacionais: number; // N - L (média de clientes operacionais/fora do sistema)
 
   // Probabilidades condicionais
-  Pn?: number;           // P(n) - Probabilidade de n clientes
+  Pn?: number;             // P(n) - Probabilidade de n clientes
 
-  // Valor do parâmetro usado
+  // Valores dos parâmetros usados (para exibição)
   n?: number;
 }
 
@@ -170,20 +170,20 @@ export interface MMsNInput {
 
 export interface MMsNResult extends BaseQueueResult {
   // Medidas básicas
-  rho: number;           // N×λ/(s×μ) (fator de utilização)
-  P0: number;            // Probabilidade de 0 clientes no sistema
-  L: number;             // Número médio de clientes no sistema
-  Lq: number;            // Número médio de clientes na fila
-  W: number;             // Tempo médio no sistema
-  Wq: number;            // Tempo médio na fila
-  lambdaEfetivo: number; // Taxa efetiva = λ(N-L)
+  rho: number;             // N×λ/(s×μ) (fator de utilização)
+  P0: number;              // Probabilidade de 0 clientes no sistema
+  L: number;               // Número médio de clientes no sistema
+  Lq: number;              // Número médio de clientes na fila
+  W: number;               // Tempo médio no sistema
+  Wq: number;              // Tempo médio na fila
+  lambdaEfetivo: number;   // Taxa efetiva = λ(N-L)
   numOperacionais: number; // N - L (média de clientes operacionais/fora do sistema)
 
   // Probabilidades condicionais
-  Pn?: number;           // P(n) - Probabilidade de n clientes
-  PWqIgualZero?: number; // P(Wq=0) - Probabilidade de não esperar na fila
+  Pn?: number;             // P(n) - Probabilidade de n clientes
+  PWqIgualZero?: number;   // P(Wq=0) - Probabilidade de não esperar na fila
 
-  // Valor do parâmetro usado
+  // Valores dos parâmetros usados (para exibição)
   n?: number;
 }
 
@@ -191,9 +191,9 @@ export interface MMsNResult extends BaseQueueResult {
 // M/G/1 - Distribuição geral de atendimento
 // ==========================================
 export interface MG1Input {
-  lambda: number | string;     // Taxa de chegada
-  meanService: number | string; // Tempo médio de atendimento
-  varService: number | string;  // Variância do tempo de atendimento
+  lambda: number | string;      // Taxa de chegada
+  mu: number | string;          // Taxa de atendimento
+  varService?: number | string; // Variância do tempo de atendimento (opcional)
 }
 
 export interface MG1Result extends BaseQueueResult {
@@ -212,7 +212,7 @@ export interface MG1Result extends BaseQueueResult {
 // Priority Model 1
 export interface Priority1Input {
   // TODO: Definir inputs específicos do modelo de prioridade 1
-  [key: string]: number;
+  [key: string]: number | string;
 }
 
 export interface Priority1Result extends BaseQueueResult {
@@ -222,7 +222,7 @@ export interface Priority1Result extends BaseQueueResult {
 // Priority Model 2
 export interface Priority2Input {
   // TODO: Definir inputs específicos do modelo de prioridade 2
-  [key: string]: number;
+  [key: string]: number | string;
 }
 
 export interface Priority2Result extends BaseQueueResult {
@@ -232,7 +232,7 @@ export interface Priority2Result extends BaseQueueResult {
 // Priority Model 3
 export interface Priority3Input {
   // TODO: Definir inputs específicos do modelo de prioridade 3
-  [key: string]: number;
+  [key: string]: number | string;
 }
 
 export interface Priority3Result extends BaseQueueResult {
@@ -242,7 +242,7 @@ export interface Priority3Result extends BaseQueueResult {
 // Priority Model 4
 export interface Priority4Input {
   // TODO: Definir inputs específicos do modelo de prioridade 4
-  [key: string]: number;
+  [key: string]: number | string;
 }
 
 export interface Priority4Result extends BaseQueueResult {

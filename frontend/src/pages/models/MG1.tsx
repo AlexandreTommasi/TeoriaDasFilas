@@ -7,7 +7,7 @@ import { calculateMG1 } from '../../services/api';
 export const MG1: React.FC = () => {
   const [inputs, setInputs] = useState<MG1Input>({
     lambda: '',
-    meanService: '',
+    mu: '',
     varService: '',
   });
 
@@ -46,30 +46,34 @@ export const MG1: React.FC = () => {
 
     // Converter valores para número
     const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
-    const meanService = typeof inputs.meanService === 'string' ? parseFloat(inputs.meanService) : inputs.meanService;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
     const varService = typeof inputs.varService === 'string' ? parseFloat(inputs.varService) : inputs.varService;
 
-    if (!lambda || lambda <= 0 || !meanService || meanService <= 0) {
-      setError('λ e E[S] devem ser maiores que zero');
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
+      setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (varService === undefined || isNaN(varService) || varService < 0) {
-      setError('Variância deve ser maior ou igual a zero');
-      return;
+    // varService é opcional - se informado, validar
+    if (inputs.varService !== '' && inputs.varService !== undefined) {
+      const numericVarService = typeof varService === 'number' ? varService : parseFloat(String(varService));
+      if (isNaN(numericVarService) || numericVarService < 0) {
+        setError('Variância deve ser maior ou igual a zero');
+        return;
+      }
     }
 
-    // Verificar estabilidade: ρ = λ × E[S] < 1
-    const rho = lambda * meanService;
+    // Verificar estabilidade: ρ = λ/μ < 1
+    const rho = lambda / mu;
     if (rho >= 1) {
-      setError('⚠️ Erro: λ × E[S] deve ser menor que 1 (condição de estabilidade)');
+      setError('⚠️ Erro: λ/μ deve ser menor que 1 (condição de estabilidade)');
       return;
     }
 
     try {
       const payload = {
         lambda,
-        meanService,
+        mu,
         varService,
       };
       const result = await calculateMG1(payload);
@@ -191,28 +195,27 @@ export const MG1: React.FC = () => {
                 </div>
                 <div>
                   <Input
-                    label="E[S] = Tempo Médio de Atendimento"
-                    value={inputs.meanService}
-                    onChange={handleInputChange('meanService')}
-                    placeholder="Ex: 0.1667"
+                    label="μ (mu) = Taxa de Atendimento"
+                    value={inputs.mu}
+                    onChange={handleInputChange('mu')}
+                    placeholder="Ex: 6"
                     required
                     min={0}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Tempo médio (não é taxa!)
+                    Atendimentos por unidade de tempo
                   </p>
                 </div>
                 <div>
                   <Input
-                    label="Var[S] = Variância do Atendimento"
-                    value={inputs.varService}
+                    label="Var[S] = Variância do Atendimento (Opcional)"
+                    value={inputs.varService !== undefined ? inputs.varService : ''}
                     onChange={handleInputChange('varService')}
-                    placeholder="Ex: 0.0278"
-                    required
+                    placeholder="Ex: 0.0278 (deixe vazio para calcular automaticamente)"
                     min={0}
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    σ² = variância do tempo
+                    Se vazio, usa σ = 1/μ automaticamente
                   </p>
                 </div>
               </div>
