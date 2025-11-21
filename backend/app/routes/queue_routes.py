@@ -6,6 +6,8 @@ from app.models.mm1n import calculate_mm1n
 from app.models.mmsk import calculate_mmsk
 from app.models.mmsn import calculate_mmsn
 from app.models.mg1 import calculate_mg1
+from app.models.priority_sem import calculate_priority_sem
+from app.models.priority_com import calculate_priority_com
 
 queue_bp = Blueprint('queue', __name__)
 
@@ -159,6 +161,56 @@ def api_calculate_mg1():
             var_service = desvio_padrao ** 2
 
         result = calculate_mg1(lambda_, mu, var_service)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@queue_bp.route('/calculate/priority-sem', methods=['POST'])
+def api_calculate_priority_sem():
+    try:
+        data = request.get_json()
+        if not data or 's' not in data or 'mu' not in data or 'lambdas' not in data:
+            return jsonify({'error': 'Campos obrigatórios: s, mu, lambdas'}), 400
+
+        s = int(data['s'])
+        mu = float(data['mu'])
+        lambdas = data['lambdas']
+
+        # Validar que lambdas é uma lista
+        if not isinstance(lambdas, list) or len(lambdas) == 0:
+            return jsonify({'error': 'lambdas deve ser uma lista com pelo menos 1 classe'}), 400
+
+        # Converter todos os lambdas para float
+        lambdas = [float(l) for l in lambdas]
+
+        result = calculate_priority_sem(s, mu, lambdas)
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': f'Erro interno: {str(e)}'}), 500
+
+@queue_bp.route('/calculate/priority-com', methods=['POST'])
+def api_calculate_priority_com():
+    try:
+        data = request.get_json()
+        if not data or 's' not in data or 'mu' not in data or 'lambdas' not in data:
+            return jsonify({'error': 'Campos obrigatórios: s, mu, lambdas'}), 400
+
+        s = int(data['s'])
+        mu = float(data['mu'])
+        lambdas = data['lambdas']
+
+        # Validar que lambdas é uma lista
+        if not isinstance(lambdas, list) or len(lambdas) == 0:
+            return jsonify({'error': 'lambdas deve ser uma lista com pelo menos 1 classe'}), 400
+
+        # Converter todos os lambdas para float
+        lambdas = [float(l) for l in lambdas]
+
+        result = calculate_priority_com(s, mu, lambdas)
         return jsonify(result), 200
     except ValueError as e:
         return jsonify({'error': str(e)}), 400

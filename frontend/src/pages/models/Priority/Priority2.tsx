@@ -1,70 +1,404 @@
 import React, { useState } from 'react';
-import { Button } from '../../../components/common';
-// import { calculatePriority2 } from '../../../services/api'; // Descomentar quando backend estiver pronto
+import { Input, Button } from '../../../components/common';
+import type { PrioritySemInput, PrioritySemResult } from '../../../types/models';
+import { HiLightBulb } from 'react-icons/hi';
+import { calculatePrioritySem } from '../../../services/api';
 
 export const Priority2: React.FC = () => {
+  const [inputs, setInputs] = useState<PrioritySemInput>({
+    s: '',
+    mu: '',
+    lambdas: ['', ''],
+  });
+
+  const [results, setResults] = useState<PrioritySemResult | null>(null);
   const [error, setError] = useState<string>('');
+
+  const handleInputChange = (field: 's' | 'mu') => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+
+    if (value === '') {
+      setInputs({ ...inputs, [field]: '' as any });
+      return;
+    }
+
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
+      setInputs({ ...inputs, [field]: value as any });
+      return;
+    }
+
+    const numValue = parseFloat(value);
+    setInputs({
+      ...inputs,
+      [field]: isNaN(numValue) ? '' : numValue,
+    });
+  };
+
+  const handleLambdaChange = (index: number) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    const newLambdas = [...inputs.lambdas];
+
+    if (value === '') {
+      newLambdas[index] = '' as any;
+      setInputs({ ...inputs, lambdas: newLambdas });
+      return;
+    }
+
+    if (value.endsWith('.') || value === '.' || value === '-' || value === '-.' || value === '0' || value.startsWith('0.')) {
+      newLambdas[index] = value as any;
+      setInputs({ ...inputs, lambdas: newLambdas });
+      return;
+    }
+
+    const numValue = parseFloat(value);
+    newLambdas[index] = isNaN(numValue) ? '' : numValue;
+    setInputs({ ...inputs, lambdas: newLambdas });
+  };
+
+  const addClasse = () => {
+    setInputs({
+      ...inputs,
+      lambdas: [...inputs.lambdas, ''],
+    });
+  };
+
+  const removeClasse = (index: number) => {
+    if (inputs.lambdas.length <= 1) {
+      setError('Deve haver pelo menos 1 classe de prioridade');
+      return;
+    }
+    const newLambdas = inputs.lambdas.filter((_, i) => i !== index);
+    setInputs({ ...inputs, lambdas: newLambdas });
+  };
 
   const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setResults(null);
 
-    // TODO: Descomentar quando backend estiver pronto
-    // const inputs = { /* definir inputs */ };
-    // try {
-    //   const result = await calculatePriority2(inputs);
-    //   setResults(result);
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : 'Erro ao calcular');
-    // }
+    // Converter valores para número
+    const s = typeof inputs.s === 'string' ? parseInt(inputs.s) : inputs.s;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
+    const lambdas = inputs.lambdas.map(l =>
+      typeof l === 'string' ? parseFloat(l) : l
+    );
 
-    setError('⚠️ Backend Flask ainda não implementou este modelo. As fórmulas devem ser implementadas em: backend/app/models/priority.py');
+    // Validações
+    if (!s || s <= 1) {
+      setError('Número de servidores (s) deve ser maior que 1 (use Priority1 para s=1)');
+      return;
+    }
+
+    if (!mu || mu <= 0) {
+      setError('Taxa de atendimento (μ) deve ser maior que zero');
+      return;
+    }
+
+    if (lambdas.some(l => !l || isNaN(l) || l <= 0)) {
+      setError('Todas as taxas de chegada (λ) devem ser maiores que zero');
+      return;
+    }
+
+    // Verificar estabilidade: λ_total / (s×μ) < 1
+    const lambdaTotal = lambdas.reduce((sum, l) => sum + l, 0);
+    const rho = lambdaTotal / (s * mu);
+    if (rho >= 1) {
+      setError(`⚠️ Erro: Sistema instável! ρ = ${rho.toFixed(4)} (deve ser < 1)`);
+      return;
+    }
+
+    try {
+      const payload = { s, mu, lambdas };
+      const result = await calculatePrioritySem(payload);
+      setResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao calcular');
+    }
   };
 
   return (
-    <div className="max-w-4xl">
-      <h2 className="text-3xl font-bold text-gray-800 mb-4">
-        Modelo com Prioridades - Variação 2
-      </h2>
-      <p className="text-gray-600 mb-6">
-        Sistema de filas com diferentes níveis de prioridade - Modelo 2.
-      </p>
-
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <form onSubmit={handleCalculate}>
-          <div className="text-gray-500 text-center py-8">
-            Inputs precisam ser definidos conforme especificação do modelo
-          </div>
-
-          {error && (
-            <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          <div className="mt-6">
-            <Button type="submit" fullWidth>
-              Calcular
-            </Button>
-          </div>
-        </form>
+    <div className="max-w-6xl mx-auto">
+      {/* Cabeçalho */}
+      <div className="mb-6">
+        <h2 className="text-4xl font-display font-bold text-dark-950 mb-2">
+          M/M/S com Prioridade (Sem Interrupção)
+        </h2>
+        <p className="text-dark-600 text-lg">
+          Múltiplas Filas • <strong>2 ou Mais Servidores</strong> • Prioridade Não-Preemptiva
+        </p>
       </div>
 
-      <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-        <h4 className="font-bold text-blue-800 mb-2">🐍 Backend Flask Necessário</h4>
-        <p className="text-blue-700 text-sm mb-2">
-          Este frontend está pronto para se conectar com o backend Flask.
-        </p>
-        <p className="text-blue-700 text-sm">
-          <strong>Próximos passos:</strong>
-        </p>
-        <ul className="list-disc list-inside text-blue-700 text-sm mt-1 ml-2">
-          <li>Implemente as fórmulas do Modelo Prioridade 2 no backend Python (pasta /backend)</li>
-          <li>Arquivo: backend/app/models/priority.py (função calculate_priority2)</li>
-          <li>Defina os inputs necessários em types/models.ts</li>
-          <li>Crie o endpoint POST /api/calculate/priority2</li>
-          <li>Descomente a chamada de API no código deste componente</li>
-        </ul>
+      {/* Quando usar */}
+      <div className="mb-6 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-xl p-5 shadow-lg">
+        <div className="flex items-start gap-3">
+          <HiLightBulb className="text-3xl text-purple-600 flex-shrink-0" />
+          <div>
+            <h3 className="font-bold text-purple-900 text-xl mb-2">Quando usar este modelo?</h3>
+            <div className="text-purple-900">
+              <p className="mb-2">✅ Use quando o exercício tiver:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                <div className="bg-purple-50 p-2 rounded">
+                  <strong>✓ 2 ou mais servidores (s ≥ 2)</strong>
+                </div>
+                <div className="bg-purple-50 p-2 rounded">
+                  <strong>✓ Diferentes classes de prioridade</strong>
+                </div>
+                <div className="bg-purple-50 p-2 rounded">
+                  <strong>✓ Atendimento NÃO pode ser interrompido</strong>
+                </div>
+                <div className="bg-purple-50 p-2 rounded">
+                  <strong>✓ Chegadas seguem Poisson por classe</strong>
+                </div>
+              </div>
+              <div className="mt-3 bg-yellow-100 border border-yellow-500 p-3 rounded text-sm">
+                <strong>📝 IMPORTANTE:</strong> Classes devem ser inseridas da <strong>MAIOR prioridade (1)</strong> para a <strong>MENOR</strong>.
+                Classe 1 tem prioridade sobre Classe 2, que tem prioridade sobre Classe 3, etc.
+              </div>
+              <div className="mt-2 bg-red-100 border border-red-400 p-2 rounded text-sm">
+                <strong>⚠️ OBRIGATÓRIO: ρ = λ_total/(s×μ) &lt; 1</strong> (condição de estabilidade)
+              </div>
+              <div className="mt-2 bg-blue-100 border border-blue-400 p-2 rounded text-sm">
+                <strong>ℹ️ Para 1 servidor (s=1):</strong> Use o modelo <strong>Priority1</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CALCULADORA PRINCIPAL */}
+      <div className="bg-gradient-to-br from-wine-500 to-wine-700 rounded-2xl shadow-2xl p-1 mb-6">
+        <div className="bg-white rounded-xl p-6">
+          <h3 className="font-display font-bold text-wine-900 text-2xl mb-1">
+            🧮 Calculadora M/M/S com Prioridade (s ≥ 2)
+          </h3>
+          <p className="text-gray-600 mb-6 text-sm">
+            Sistema com múltiplas classes de prioridade sem interrupção (Non-Preemptive)
+          </p>
+
+          <form onSubmit={handleCalculate} className="space-y-5">
+            {/* Parâmetros do sistema */}
+            <div className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200">
+              <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="bg-wine-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span>
+                Parâmetros do Sistema
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    label="s = Número de Servidores (≥ 2)"
+                    value={inputs.s}
+                    onChange={handleInputChange('s')}
+                    placeholder="Ex: 3"
+                    required
+                    min={2}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Quantidade de atendentes/máquinas (mínimo 2)
+                  </p>
+                </div>
+                <div>
+                  <Input
+                    label="μ (mu) = Taxa de Atendimento"
+                    value={inputs.mu}
+                    onChange={handleInputChange('mu')}
+                    placeholder="Ex: 5"
+                    required
+                    min={0}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Atendimentos por unidade de tempo (por servidor)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Classes de Prioridade */}
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-5 border-2 border-purple-300">
+              <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="bg-purple-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span>
+                Classes de Prioridade (da maior para a menor)
+              </h4>
+
+              {inputs.lambdas.map((lambda, index) => (
+                <div key={index} className="mb-3 bg-white p-4 rounded-lg border border-purple-300">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-20">
+                      <span className="inline-block bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                        Classe {index + 1}
+                      </span>
+                    </div>
+                    <div className="flex-grow">
+                      <Input
+                        label={`λ${index + 1} = Taxa de Chegada`}
+                        value={lambda}
+                        onChange={handleLambdaChange(index)}
+                        placeholder="Ex: 2.5"
+                        required
+                        min={0}
+                      />
+                    </div>
+                    {inputs.lambdas.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeClasse(index)}
+                        className="flex-shrink-0 bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 text-sm"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addClasse}
+                className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 font-semibold"
+              >
+                + Adicionar Classe de Prioridade
+              </button>
+            </div>
+
+            {/* Informações calculadas */}
+            {inputs.s && inputs.mu && inputs.lambdas.every(l => l !== '') && (
+              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-300">
+                <h4 className="font-bold text-blue-900 mb-2">📊 Verificação Preliminar:</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                    <p>
+                      <strong>λ total:</strong>{' '}
+                      {inputs.lambdas.reduce<number>((sum, l) => sum + Number(l || 0), 0).toFixed(4)}
+                    </p>
+                    <p>
+                      <strong>Capacidade (s×μ):</strong>{' '}
+                      {(Number(inputs.s) * Number(inputs.mu)).toFixed(4)}
+                    </p>
+                    <p>
+                      <strong>ρ (utilização):</strong>{' '}
+                      {(inputs.lambdas.reduce<number>((sum, l) => sum + Number(l || 0), 0) /
+                        (Number(inputs.s) * Number(inputs.mu))).toFixed(4)}
+                    </p>
+                  </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-100 border-2 border-red-400 text-red-800 px-4 py-3 rounded-lg font-semibold">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" fullWidth>
+              🚀 CALCULAR COM PRIORIDADE (s ≥ 2)
+            </Button>
+          </form>
+
+          {/* Resultados */}
+          {results && (
+            <div className="mt-8">
+              <h4 className="font-bold text-gray-800 mb-4 text-lg">📊 Resultados do Sistema:</h4>
+
+              {/* Métricas gerais */}
+              <div className="bg-gray-50 rounded-lg p-4 mb-4 border-2 border-gray-300">
+                <h5 className="font-bold text-gray-700 mb-3">Métricas Gerais do Sistema</h5>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                  <div className="bg-white p-3 rounded border">
+                    <p className="text-gray-600">Taxa de Utilização</p>
+                    <p className="font-bold text-lg">{results.rho.toFixed(4)}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <p className="text-gray-600">λ Total</p>
+                    <p className="font-bold text-lg">{results.lambdaTotal.toFixed(4)}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <p className="text-gray-600">Capacidade (s×μ)</p>
+                    <p className="font-bold text-lg">{results.capacidadeTotal.toFixed(4)}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <p className="text-gray-600">Termo A</p>
+                    <p className="font-bold text-lg">{results.termoA.toFixed(4)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resultados por classe */}
+              <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-300">
+                <h5 className="font-bold text-purple-900 mb-3">Resultados por Classe de Prioridade</h5>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-purple-200">
+                        <th className="p-2 text-left">Classe</th>
+                        <th className="p-2 text-right">λ</th>
+                        <th className="p-2 text-right">L</th>
+                        <th className="p-2 text-right">Lq</th>
+                        <th className="p-2 text-right">W</th>
+                        <th className="p-2 text-right">Wq</th>
+                        <th className="p-2 text-right">σ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.classes.map((classe) => (
+                        <tr key={classe.classe} className="border-b bg-white hover:bg-purple-50">
+                          <td className="p-2 font-bold">Classe {classe.classe}</td>
+                          <td className="p-2 text-right">{classe.lambda.toFixed(4)}</td>
+                          <td className="p-2 text-right">{classe.L.toFixed(4)}</td>
+                          <td className="p-2 text-right">{classe.Lq.toFixed(4)}</td>
+                          <td className="p-2 text-right">{classe.W.toFixed(4)}</td>
+                          <td className="p-2 text-right">{classe.Wq.toFixed(4)}</td>
+                          <td className="p-2 text-right">{classe.sigma.toFixed(4)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-3 text-xs text-gray-600">
+                  <p><strong>L:</strong> Nº médio clientes no sistema | <strong>Lq:</strong> Nº médio na fila</p>
+                  <p><strong>W:</strong> Tempo médio no sistema | <strong>Wq:</strong> Tempo médio na fila</p>
+                  <p><strong>σ:</strong> Sigma acumulado (λ₁+...+λₖ)/(s×μ)</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Fórmulas */}
+      <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-2 border-indigo-400 rounded-xl p-5 shadow-lg">
+        <h4 className="font-bold text-indigo-900 text-xl mb-4">📐 Fórmulas do Modelo (M/M/S, s≥2)</h4>
+        <div className="bg-white rounded-lg p-5 space-y-3 text-sm">
+          <div className="border-b pb-2">
+            <p className="font-mono text-indigo-900"><strong>ρ = λ_total / (s × μ)</strong></p>
+            <p className="text-xs text-gray-600">Taxa de utilização do sistema (deve ser &lt; 1)</p>
+          </div>
+          <div className="border-b pb-2">
+            <p className="font-mono text-indigo-900"><strong>σₖ = (λ₁+λ₂+...+λₖ) / (s × μ)</strong></p>
+            <p className="text-xs text-gray-600">Sigma acumulado até a classe k</p>
+          </div>
+          <div className="border-b pb-2 bg-yellow-50 p-2 rounded">
+            <p className="font-mono text-indigo-900"><strong>A = [s! × (s×μ - λ_total) / r^s] × Σ(r^j/j!) + s×μ</strong></p>
+            <p className="text-xs text-gray-600">⭐ Termo constante A (onde r = λ_total/μ)</p>
+          </div>
+          <div className="border-b pb-2">
+            <p className="font-mono text-indigo-900"><strong>Wₖ = 1/[A × (1-σₖ₋₁) × (1-σₖ)] + 1/μ</strong></p>
+            <p className="text-xs text-gray-600">Tempo médio no sistema para classe k</p>
+          </div>
+          <div className="border-b pb-2">
+            <p className="font-mono text-indigo-900"><strong>Wqₖ = Wₖ - 1/μ</strong></p>
+            <p className="text-xs text-gray-600">Tempo médio na fila para classe k</p>
+          </div>
+          <div className="border-b pb-2">
+            <p className="font-mono text-indigo-900"><strong>Lₖ = λₖ × Wₖ</strong></p>
+            <p className="text-xs text-gray-600">Número médio de clientes no sistema (classe k)</p>
+          </div>
+          <div>
+            <p className="font-mono text-indigo-900"><strong>Lqₖ = λₖ × Wqₖ</strong></p>
+            <p className="text-xs text-gray-600">Número médio de clientes na fila (classe k)</p>
+          </div>
+        </div>
       </div>
     </div>
   );

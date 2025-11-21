@@ -3,7 +3,7 @@
 // ==========================================
 
 export interface BaseQueueResult {
-  [key: string]: number | string | undefined;
+  [key: string]: unknown;
 }
 
 // ==========================================
@@ -209,42 +209,41 @@ export interface MG1Result extends BaseQueueResult {
 // MODELOS COM PRIORIDADES
 // ==========================================
 
-// Priority Model 1
-export interface Priority1Input {
-  // TODO: Definir inputs específicos do modelo de prioridade 1
-  [key: string]: number | string;
+// M/M/S com Prioridade Sem Interrupção (Non-Preemptive)
+export interface PrioritySemInput {
+  s: number | string;           // Número de servidores
+  mu: number | string;          // Taxa de atendimento por servidor
+  lambdas: (number | string)[]; // Array com taxas de chegada de cada classe (maior prioridade primeiro)
 }
 
-export interface Priority1Result extends BaseQueueResult {
-  // TODO: Definir resultados específicos
+export interface ClassResult {
+  classe: number;   // Número da classe (1, 2, 3...)
+  L: number;        // Número médio de clientes no sistema (classe k)
+  Lq: number;       // Número médio de clientes na fila (classe k)
+  W: number;        // Tempo médio no sistema (classe k)
+  Wq: number;       // Tempo médio na fila (classe k)
+  lambda: number;   // Taxa de chegada da classe k
+  sigma: number;    // Sigma acumulado até classe k
 }
 
-// Priority Model 2
-export interface Priority2Input {
-  // TODO: Definir inputs específicos do modelo de prioridade 2
-  [key: string]: number | string;
+export interface PrioritySemResult extends BaseQueueResult {
+  rho: number;              // Taxa de utilização do sistema (λ_total / (s×μ))
+  lambdaTotal: number;      // Soma de todas as taxas de chegada
+  capacidadeTotal: number;  // s × μ (capacidade total do sistema)
+  termoA: number;           // Termo A usado nos cálculos
+  classes: ClassResult[];   // Resultados por classe de prioridade
 }
 
-export interface Priority2Result extends BaseQueueResult {
-  // TODO: Definir resultados específicos
+// M/M/S com Prioridade COM Interrupção (Preemptive)
+export interface PriorityComInput {
+  s: number | string;           // Número de servidores
+  mu: number | string;          // Taxa de atendimento por servidor
+  lambdas: (number | string)[]; // Array com taxas de chegada de cada classe (maior prioridade primeiro)
 }
 
-// Priority Model 3
-export interface Priority3Input {
-  // TODO: Definir inputs específicos do modelo de prioridade 3
-  [key: string]: number | string;
-}
-
-export interface Priority3Result extends BaseQueueResult {
-  // TODO: Definir resultados específicos
-}
-
-// Priority Model 4
-export interface Priority4Input {
-  // TODO: Definir inputs específicos do modelo de prioridade 4
-  [key: string]: number | string;
-}
-
-export interface Priority4Result extends BaseQueueResult {
-  // TODO: Definir resultados específicos
+export interface PriorityComResult extends BaseQueueResult {
+  rho: number;              // Taxa de utilização do sistema (λ_total / (s×μ))
+  lambdaTotal: number;      // Soma de todas as taxas de chegada
+  capacidadeTotal: number;  // s × μ (capacidade total do sistema)
+  classes: ClassResult[];   // Resultados por classe de prioridade (sem termoA - fórmula preemptive é mais simples)
 }

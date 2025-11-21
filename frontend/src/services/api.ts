@@ -7,10 +7,8 @@ import type {
   MM1NInput, MM1NResult,
   MMsNInput, MMsNResult,
   MG1Input, MG1Result,
-  Priority1Input, Priority1Result,
-  Priority2Input, Priority2Result,
-  Priority3Input, Priority3Result,
-  Priority4Input, Priority4Result,
+  PrioritySemInput, PrioritySemResult,
+  PriorityComInput, PriorityComResult,
 } from '../types/models';
 
 // Configuração base da API
@@ -70,23 +68,13 @@ export const calculateMG1 = async (input: MG1Input): Promise<MG1Result> => {
 };
 
 // Priority Models
-export const calculatePriority1 = async (input: Priority1Input): Promise<Priority1Result> => {
-  const response = await api.post<Priority1Result>('/calculate/priority1', input);
+export const calculatePrioritySem = async (input: PrioritySemInput): Promise<PrioritySemResult> => {
+  const response = await api.post<PrioritySemResult>('/calculate/priority-sem', input);
   return response.data;
 };
 
-export const calculatePriority2 = async (input: Priority2Input): Promise<Priority2Result> => {
-  const response = await api.post<Priority2Result>('/calculate/priority2', input);
-  return response.data;
-};
-
-export const calculatePriority3 = async (input: Priority3Input): Promise<Priority3Result> => {
-  const response = await api.post<Priority3Result>('/calculate/priority3', input);
-  return response.data;
-};
-
-export const calculatePriority4 = async (input: Priority4Input): Promise<Priority4Result> => {
-  const response = await api.post<Priority4Result>('/calculate/priority4', input);
+export const calculatePriorityCom = async (input: PriorityComInput): Promise<PriorityComResult> => {
+  const response = await api.post<PriorityComResult>('/calculate/priority-com', input);
   return response.data;
 };
 

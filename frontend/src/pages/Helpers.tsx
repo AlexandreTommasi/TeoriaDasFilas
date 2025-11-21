@@ -16,17 +16,13 @@ export const Helpers: React.FC = () => {
   const [lambdaParaMu, setLambdaParaMu] = useState('');
   const [muDeRho, setMuDeRho] = useState<number | null>(null);
 
-  // Estados para Variância
-  const [tempoMedioVar, setTempoMedioVar] = useState('');
-  const [desvioPadrao, setDesvioPadrao] = useState('');
-  const [varianciaExponencial, setVarianciaExponencial] = useState<number | null>(null);
-  const [varianciaDesvio, setVarianciaDesvio] = useState<number | null>(null);
-
   // Estados para Conversão de Tempo
   const [minutos, setMinutos] = useState('');
   const [horas, setHoras] = useState<number | null>(null);
   const [segundos, setSegundos] = useState('');
   const [horasDeSeg, setHorasDeSeg] = useState<number | null>(null);
+  const [horasParaMin, setHorasParaMin] = useState('');
+  const [minutosDeHoras, setMinutosDeHoras] = useState<number | null>(null);
 
   const calcularLambda = () => {
     const tempo = parseFloat(tempoEntreChegadas);
@@ -50,20 +46,6 @@ export const Helpers: React.FC = () => {
     }
   };
 
-  const calcularVarianciaExp = () => {
-    const tempo = parseFloat(tempoMedioVar);
-    if (tempo > 0) {
-      setVarianciaExponencial(tempo * tempo);
-    }
-  };
-
-  const calcularVarianciaDesvio = () => {
-    const desvio = parseFloat(desvioPadrao);
-    if (desvio >= 0) {
-      setVarianciaDesvio(desvio * desvio);
-    }
-  };
-
   const converterMinutosParaHoras = () => {
     const min = parseFloat(minutos);
     if (min >= 0) {
@@ -75,6 +57,13 @@ export const Helpers: React.FC = () => {
     const seg = parseFloat(segundos);
     if (seg >= 0) {
       setHorasDeSeg(seg / 3600);
+    }
+  };
+
+  const converterHorasParaMinutos = () => {
+    const hrs = parseFloat(horasParaMin);
+    if (hrs >= 0) {
+      setMinutosDeHoras(hrs * 60);
     }
   };
 
@@ -242,84 +231,7 @@ export const Helpers: React.FC = () => {
           </div>
         </div>
 
-        {/* CALCULADORA 4: Variância - Exponencial */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl shadow-2xl p-1">
-          <div className="bg-white rounded-xl p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <HiCalculator className="text-3xl text-orange-600" />
-              <h3 className="font-display font-bold text-orange-900 text-2xl">Variância (M/G/1)</h3>
-            </div>
-            <p className="text-gray-600 mb-4 text-sm">
-              <strong>Para o modelo M/G/1:</strong> calcule a variância σ² do tempo de atendimento
-            </p>
-
-            <div className="space-y-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="font-semibold text-blue-900 mb-2">Tempo EXPONENCIAL (M/M/1):</p>
-                <Input
-                  label="E[S] - Tempo médio de atendimento"
-                  value={tempoMedioVar}
-                  onChange={(e) => setTempoMedioVar(e.target.value)}
-                  placeholder="Ex: 0.1667"
-                  type="number"
-                />
-                <div className="mt-3">
-                  <Button onClick={calcularVarianciaExp} fullWidth>
-                    Calcular Var[S]
-                  </Button>
-                </div>
-
-                {varianciaExponencial !== null && (
-                  <div className="bg-white border-2 border-blue-400 rounded-lg p-3 mt-3">
-                    <p className="text-sm text-blue-800">Variância:</p>
-                    <p className="text-2xl font-bold text-blue-900">σ² = {varianciaExponencial.toFixed(8)}</p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      📌 Var[S] = (E[S])²
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-cyan-50 p-4 rounded-lg">
-                <p className="font-semibold text-cyan-900 mb-2">CONSTANTE (M/D/1):</p>
-                <div className="bg-white border-2 border-cyan-400 rounded-lg p-3">
-                  <p className="text-2xl font-bold text-cyan-900">σ² = 0</p>
-                  <p className="text-xs text-cyan-700 mt-1">
-                    Tempo constante sempre tem variância = 0
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-pink-50 p-4 rounded-lg">
-                <p className="font-semibold text-pink-900 mb-2">A partir do Desvio-Padrão σ:</p>
-                <Input
-                  label="σ (sigma) - Desvio-padrão"
-                  value={desvioPadrao}
-                  onChange={(e) => setDesvioPadrao(e.target.value)}
-                  placeholder="Ex: 2.5"
-                  type="number"
-                />
-                <div className="mt-3">
-                  <Button onClick={calcularVarianciaDesvio} fullWidth>
-                    Calcular σ²
-                  </Button>
-                </div>
-
-                {varianciaDesvio !== null && (
-                  <div className="bg-white border-2 border-pink-400 rounded-lg p-3 mt-3">
-                    <p className="text-sm text-pink-800">Variância:</p>
-                    <p className="text-2xl font-bold text-pink-900">σ² = {varianciaDesvio.toFixed(8)}</p>
-                    <p className="text-xs text-pink-700 mt-1">
-                      📌 σ² = σ × σ
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* CALCULADORA 5: Conversão de Tempo - Minutos */}
+        {/* CALCULADORA 4: Conversão de Tempo - Minutos para Horas */}
         <div className="bg-gradient-to-br from-teal-500 to-teal-700 rounded-2xl shadow-2xl p-1">
           <div className="bg-white rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -363,7 +275,7 @@ export const Helpers: React.FC = () => {
           </div>
         </div>
 
-        {/* CALCULADORA 6: Conversão de Tempo - Segundos */}
+        {/* CALCULADORA 5: Conversão de Tempo - Segundos para Horas */}
         <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl shadow-2xl p-1">
           <div className="bg-white rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -398,9 +310,53 @@ export const Helpers: React.FC = () => {
               )}
 
               <div className="bg-gray-50 p-3 rounded text-xs text-gray-700">
-                <p className="font-semibold mb-1">Exemplo (do seu material):</p>
+                <p className="font-semibold mb-1">Exemplo:</p>
                 <p>• 90 segundos = 90/3600 = <strong>0.025 horas</strong></p>
                 <p>• Aí μ = 1/0.025 = <strong>40 atendimentos/hora</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CALCULADORA 6: Conversão de Tempo - Horas para Minutos */}
+        <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-2xl shadow-2xl p-1">
+          <div className="bg-white rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <HiClock className="text-3xl text-orange-600" />
+              <h3 className="font-display font-bold text-orange-900 text-2xl">Converter Horas → Minutos</h3>
+            </div>
+            <p className="text-gray-600 mb-4 text-sm">
+              <strong>Quando usar:</strong> Tem um valor em horas e quer converter para minutos
+            </p>
+
+            <div className="space-y-4">
+              <Input
+                label="Tempo em horas"
+                value={horasParaMin}
+                onChange={(e) => setHorasParaMin(e.target.value)}
+                placeholder="Ex: 0.5"
+                type="number"
+              />
+
+              <Button onClick={converterHorasParaMinutos} fullWidth>
+                Converter
+              </Button>
+
+              {minutosDeHoras !== null && (
+                <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-4">
+                  <p className="text-sm text-orange-800 mb-2">Resultado:</p>
+                  <p className="text-3xl font-bold text-orange-900">{minutosDeHoras.toFixed(2)} minutos</p>
+                  <p className="text-xs text-orange-700 mt-2">
+                    📌 {horasParaMin} horas = {minutosDeHoras.toFixed(2)} minutos
+                  </p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 p-3 rounded text-xs text-gray-700">
+                <p className="font-semibold mb-1">Exemplos:</p>
+                <p>• 0.5 horas = 0.5 × 60 = <strong>30 minutos</strong></p>
+                <p>• 1.5 horas = 1.5 × 60 = <strong>90 minutos</strong></p>
+                <p>• 0.25 horas = 0.25 × 60 = <strong>15 minutos</strong></p>
               </div>
             </div>
           </div>
