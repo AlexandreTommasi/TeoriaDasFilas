@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button, ResultDisplay } from '../../components/common';
 import type { MMsKInput, MMsKResult } from '../../types/models';
-import { SiPython } from 'react-icons/si';
-import { HiCheckCircle, HiLightBulb } from 'react-icons/hi';
-// import { calculateMMsK } from '../../services/api'; // Descomentar quando backend estiver pronto
+import { HiLightBulb } from 'react-icons/hi';
+import { calculateMMsK } from '../../services/api';
 
 export const MMsK: React.FC = () => {
   const [inputs, setInputs] = useState<MMsKInput>({
@@ -69,19 +68,13 @@ export const MMsK: React.FC = () => {
       return;
     }
 
-    // ==========================================
-    // Backend necessário
-    // ==========================================
-    // try {
-    //   const payload = { lambda, mu, s, K, n };
-    //   const result = await calculateMMsK(payload);
-    //   setResults(result);
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : 'Erro ao calcular');
-    // }
-    // ==========================================
-
-    setError('⚠️ Backend Flask ainda não está rodando.');
+    try {
+      const payload = { lambda, mu, s, K, n };
+      const result = await calculateMMsK(payload);
+      setResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao calcular');
+    }
   };
 
   const resultItems = results
@@ -208,7 +201,6 @@ export const MMsK: React.FC = () => {
                     placeholder="Ex: 5"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Clientes que tentam entrar por tempo
@@ -222,7 +214,6 @@ export const MMsK: React.FC = () => {
                     placeholder="Ex: 7"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Clientes que CADA servidor atende por tempo
@@ -236,7 +227,6 @@ export const MMsK: React.FC = () => {
                     placeholder="Ex: 2"
                     required
                     min={2}
-                    step="1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Quantos atendentes/boxes/caixas
@@ -249,8 +239,7 @@ export const MMsK: React.FC = () => {
                     onChange={handleInputChange('K')}
                     placeholder="Ex: 5"
                     required
-                    min={inputs.s || 2}
-                    step="1"
+                    min={2}
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Máximo de clientes no sistema (K ≥ s)
@@ -258,8 +247,8 @@ export const MMsK: React.FC = () => {
                 </div>
               </div>
               <div className="mt-3 bg-yellow-50 border border-yellow-300 p-3 rounded text-sm">
-                <p><strong>📊 Capacidade total:</strong> {inputs.s && inputs.mu ? `s×μ = ${inputs.s}×${inputs.mu} = ${inputs.s * inputs.mu} clientes/tempo` : 'Preencha s e μ'}</p>
-                <p className="mt-1"><strong>🔢 ρ = λ/(s×μ):</strong> {inputs.lambda && inputs.s && inputs.mu ? `${inputs.lambda}/(${inputs.s}×${inputs.mu}) = ${(inputs.lambda / (inputs.s * inputs.mu)).toFixed(3)}` : 'Preencha λ, s e μ'}</p>
+                <p><strong>📊 Capacidade total:</strong> {inputs.s && inputs.mu ? `s×μ = ${inputs.s}×${inputs.mu} = ${Number(inputs.s) * Number(inputs.mu)} clientes/tempo` : 'Preencha s e μ'}</p>
+                <p className="mt-1"><strong>🔢 ρ = λ/(s×μ):</strong> {inputs.lambda && inputs.s && inputs.mu ? `${inputs.lambda}/(${inputs.s}×${inputs.mu}) = ${(Number(inputs.lambda) / (Number(inputs.s) * Number(inputs.mu))).toFixed(3)}` : 'Preencha λ, s e μ'}</p>
                 <p className="mt-1"><strong>🚫 Bloqueio:</strong> Se sistema tiver K={inputs.K} clientes, próximo é REJEITADO</p>
               </div>
             </div>
@@ -278,8 +267,6 @@ export const MMsK: React.FC = () => {
                     onChange={handleInputChange('n')}
                     placeholder="Ex: 5"
                     min={0}
-                    max={inputs.K || undefined}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n)</strong> (0 ≤ n ≤ K)
@@ -467,32 +454,6 @@ export const MMsK: React.FC = () => {
         </div>
       </div>
 
-      {/* Info do backend */}
-      <div className="bg-wine-50 border-l-4 border-wine-600 p-5 rounded-lg">
-        <div className="flex items-start gap-3">
-          <SiPython className="text-2xl text-wine-700 flex-shrink-0 mt-1" />
-          <div className="text-sm">
-            <h4 className="font-bold text-wine-900 mb-2">Backend Necessário</h4>
-            <p className="text-wine-800 mb-2">
-              Esta interface está pronta. Seus colegas de back-end devem:
-            </p>
-            <ul className="space-y-1 text-wine-800">
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Implementar fórmulas do M/M/s/K em Python</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Criar endpoint POST /api/calculate/mmsk</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Retornar todos os resultados calculados</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

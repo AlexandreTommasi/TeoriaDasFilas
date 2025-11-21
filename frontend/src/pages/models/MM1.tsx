@@ -209,7 +209,6 @@ export const MM1: React.FC = () => {
                     placeholder="Ex: 3"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Quantos clientes chegam por unidade de tempo
@@ -223,7 +222,6 @@ export const MM1: React.FC = () => {
                     placeholder="Ex: 4"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Quantos clientes são atendidos por unidade de tempo
@@ -246,7 +244,6 @@ export const MM1: React.FC = () => {
                     onChange={handleInputChange('n')}
                     placeholder="Ex: 5"
                     min={0}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n)</strong>
@@ -259,7 +256,6 @@ export const MM1: React.FC = () => {
                     onChange={handleInputChange('r')}
                     placeholder="Ex: 3"
                     min={0}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n&gt;r)</strong>
@@ -272,7 +268,6 @@ export const MM1: React.FC = () => {
                     onChange={handleInputChange('t')}
                     placeholder="Ex: 1"
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para <strong>P(W&gt;t)</strong> e <strong>P(Wq&gt;t)</strong>

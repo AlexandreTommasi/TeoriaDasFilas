@@ -1,18 +1,24 @@
 import React, { useState } from 'react';
 import { Input, Button, ResultDisplay } from '../../components/common';
 import type { MG1Input, MG1Result } from '../../types/models';
-import { HiLightBulb } from 'react-icons/hi';
+import { HiLightBulb, HiCalculator } from 'react-icons/hi';
 import { calculateMG1 } from '../../services/api';
 
 export const MG1: React.FC = () => {
   const [inputs, setInputs] = useState<MG1Input>({
     lambda: '',
-    meanService: '',
+    mu: '',
     varService: '',
   });
 
   const [results, setResults] = useState<MG1Result | null>(null);
   const [error, setError] = useState<string>('');
+
+  // Estados para calculadoras de variância
+  const [tempoMedioVar, setTempoMedioVar] = useState('');
+  const [desvioPadrao, setDesvioPadrao] = useState('');
+  const [varianciaExponencial, setVarianciaExponencial] = useState<number | null>(null);
+  const [varianciaDesvio, setVarianciaDesvio] = useState<number | null>(null);
 
   const handleInputChange = (field: keyof MG1Input) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -39,6 +45,20 @@ export const MG1: React.FC = () => {
     });
   };
 
+  const calcularVarianciaExp = () => {
+    const tempo = parseFloat(tempoMedioVar);
+    if (tempo > 0) {
+      setVarianciaExponencial(tempo * tempo);
+    }
+  };
+
+  const calcularVarianciaDesvio = () => {
+    const desvio = parseFloat(desvioPadrao);
+    if (desvio >= 0) {
+      setVarianciaDesvio(desvio * desvio);
+    }
+  };
+
   const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -46,30 +66,34 @@ export const MG1: React.FC = () => {
 
     // Converter valores para número
     const lambda = typeof inputs.lambda === 'string' ? parseFloat(inputs.lambda) : inputs.lambda;
-    const meanService = typeof inputs.meanService === 'string' ? parseFloat(inputs.meanService) : inputs.meanService;
+    const mu = typeof inputs.mu === 'string' ? parseFloat(inputs.mu) : inputs.mu;
     const varService = typeof inputs.varService === 'string' ? parseFloat(inputs.varService) : inputs.varService;
 
-    if (!lambda || lambda <= 0 || !meanService || meanService <= 0) {
-      setError('λ e E[S] devem ser maiores que zero');
+    if (!lambda || lambda <= 0 || !mu || mu <= 0) {
+      setError('λ e μ devem ser maiores que zero');
       return;
     }
 
-    if (varService === undefined || isNaN(varService) || varService < 0) {
-      setError('Variância deve ser maior ou igual a zero');
-      return;
+    // varService é opcional - se informado, validar
+    if (inputs.varService !== '' && inputs.varService !== undefined) {
+      const numericVarService = typeof varService === 'number' ? varService : parseFloat(String(varService));
+      if (isNaN(numericVarService) || numericVarService < 0) {
+        setError('Variância deve ser maior ou igual a zero');
+        return;
+      }
     }
 
-    // Verificar estabilidade: ρ = λ × E[S] < 1
-    const rho = lambda * meanService;
+    // Verificar estabilidade: ρ = λ/μ < 1
+    const rho = lambda / mu;
     if (rho >= 1) {
-      setError('⚠️ Erro: λ × E[S] deve ser menor que 1 (condição de estabilidade)');
+      setError('⚠️ Erro: λ/μ deve ser menor que 1 (condição de estabilidade)');
       return;
     }
 
     try {
       const payload = {
         lambda,
-        meanService,
+        mu,
         varService,
       };
       const result = await calculateMG1(payload);
@@ -184,7 +208,6 @@ export const MG1: React.FC = () => {
                     placeholder="Ex: 4"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Chegadas por unidade de tempo
@@ -192,30 +215,27 @@ export const MG1: React.FC = () => {
                 </div>
                 <div>
                   <Input
-                    label="E[S] = Tempo Médio de Atendimento"
-                    value={inputs.meanService}
-                    onChange={handleInputChange('meanService')}
-                    placeholder="Ex: 0.1667"
+                    label="μ (mu) = Taxa de Atendimento"
+                    value={inputs.mu}
+                    onChange={handleInputChange('mu')}
+                    placeholder="Ex: 6"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Tempo médio (não é taxa!)
+                    Atendimentos por unidade de tempo
                   </p>
                 </div>
                 <div>
                   <Input
-                    label="Var[S] = Variância do Atendimento"
-                    value={inputs.varService}
+                    label="Var[S] = Variância do Atendimento (Opcional)"
+                    value={inputs.varService !== undefined ? inputs.varService : ''}
                     onChange={handleInputChange('varService')}
-                    placeholder="Ex: 0.0278"
-                    required
+                    placeholder="Ex: 0.0278 (deixe vazio para calcular automaticamente)"
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    σ² = variância do tempo
+                    Se vazio, usa σ = 1/μ automaticamente
                   </p>
                 </div>
               </div>
@@ -248,6 +268,79 @@ export const MG1: React.FC = () => {
                   <p>E[S] = <strong>1/μ</strong></p>
                   <p className="text-xs text-gray-600 mt-1">Primeiro converte, depois calcula Var</p>
                 </div>
+              </div>
+            </div>
+
+            {/* Calculadoras de Variância */}
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-5 border-2 border-orange-300">
+              <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <HiCalculator className="text-2xl text-orange-600" />
+                Calculadoras de Variância
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Calculadora 1: Exponencial */}
+                <div className="bg-white rounded-lg p-4 border-2 border-blue-300">
+                  <p className="font-semibold text-blue-900 mb-3">Tempo EXPONENCIAL (M/M/1):</p>
+                  <Input
+                    label="E[S] - Tempo médio de atendimento"
+                    value={tempoMedioVar}
+                    onChange={(e) => setTempoMedioVar(e.target.value)}
+                    placeholder="Ex: 0.1667"
+                    type="number"
+                  />
+                  <div className="mt-3">
+                    <Button onClick={calcularVarianciaExp} fullWidth>
+                      Calcular Var[S]
+                    </Button>
+                  </div>
+
+                  {varianciaExponencial !== null && (
+                    <div className="bg-blue-50 border-2 border-blue-400 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-blue-800">Variância:</p>
+                      <p className="text-2xl font-bold text-blue-900">σ² = {varianciaExponencial.toFixed(8)}</p>
+                      <p className="text-xs text-blue-700 mt-1">
+                        📌 Var[S] = (E[S])²
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Calculadora 2: Desvio-padrão */}
+                <div className="bg-white rounded-lg p-4 border-2 border-pink-300">
+                  <p className="font-semibold text-pink-900 mb-3">A partir do Desvio-Padrão σ:</p>
+                  <Input
+                    label="σ (sigma) - Desvio-padrão"
+                    value={desvioPadrao}
+                    onChange={(e) => setDesvioPadrao(e.target.value)}
+                    placeholder="Ex: 2.5"
+                    type="number"
+                  />
+                  <div className="mt-3">
+                    <Button onClick={calcularVarianciaDesvio} fullWidth>
+                      Calcular σ²
+                    </Button>
+                  </div>
+
+                  {varianciaDesvio !== null && (
+                    <div className="bg-pink-50 border-2 border-pink-400 rounded-lg p-3 mt-3">
+                      <p className="text-sm text-pink-800">Variância:</p>
+                      <p className="text-2xl font-bold text-pink-900">σ² = {varianciaDesvio.toFixed(8)}</p>
+                      <p className="text-xs text-pink-700 mt-1">
+                        📌 σ² = σ × σ
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Info sobre tempo constante */}
+              <div className="mt-4 bg-cyan-50 p-4 rounded-lg border-2 border-cyan-300">
+                <p className="font-semibold text-cyan-900 mb-1">Tempo CONSTANTE (M/D/1):</p>
+                <p className="text-2xl font-bold text-cyan-900">σ² = 0</p>
+                <p className="text-xs text-cyan-700 mt-1">
+                  Tempo constante sempre tem variância = 0 (sem necessidade de calcular)
+                </p>
               </div>
             </div>
 

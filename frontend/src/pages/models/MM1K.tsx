@@ -194,7 +194,6 @@ export const MM1K: React.FC = () => {
                     placeholder="Ex: 0.3"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Clientes que tentam entrar por tempo
@@ -208,7 +207,6 @@ export const MM1K: React.FC = () => {
                     placeholder="Ex: 0.5"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Clientes atendidos por tempo
@@ -222,7 +220,6 @@ export const MM1K: React.FC = () => {
                     placeholder="Ex: 2"
                     required
                     min={1}
-                    step="1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Máximo de clientes no sistema
@@ -230,7 +227,7 @@ export const MM1K: React.FC = () => {
                 </div>
               </div>
               <div className="mt-3 bg-yellow-50 border border-yellow-300 p-3 rounded text-sm">
-                <p><strong>🔢 ρ = λ/μ:</strong> {inputs.lambda && inputs.mu ? `${inputs.lambda}/${inputs.mu} = ${(inputs.lambda / inputs.mu).toFixed(3)}` : 'Preencha λ e μ'}</p>
+                <p><strong>🔢 ρ = λ/μ:</strong> {inputs.lambda && inputs.mu ? `${inputs.lambda}/${inputs.mu} = ${(Number(inputs.lambda) / Number(inputs.mu)).toFixed(3)}` : 'Preencha λ e μ'}</p>
                 <p className="mt-1"><strong>⚠️ Importante:</strong> Em M/M/1/K, ρ PODE ser {'>'} 1 (diferente do M/M/1)!</p>
                 <p className="mt-1"><strong>🚫 Bloqueio:</strong> Se sistema tiver K clientes, próximo cliente é REJEITADO</p>
               </div>
@@ -250,8 +247,6 @@ export const MM1K: React.FC = () => {
                     onChange={handleInputChange('n')}
                     placeholder="Ex: 2"
                     min={0}
-                    max={inputs.K || undefined}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n)</strong> (0 ≤ n ≤ K)

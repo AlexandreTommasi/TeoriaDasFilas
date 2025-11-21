@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Input, Button, ResultDisplay } from '../../components/common';
 import type { MMsNInput, MMsNResult } from '../../types/models';
-import { SiPython } from 'react-icons/si';
-import { HiCheckCircle, HiLightBulb } from 'react-icons/hi';
-// import { calculateMMsN } from '../../services/api'; // Descomentar quando backend estiver pronto
+import { HiLightBulb } from 'react-icons/hi';
+import { calculateMMsN } from '../../services/api';
 
 export const MMsN: React.FC = () => {
   const [inputs, setInputs] = useState<MMsNInput>({
@@ -74,19 +73,13 @@ export const MMsN: React.FC = () => {
       return;
     }
 
-    // ==========================================
-    // Backend necessário
-    // ==========================================
-    // try {
-    //   const payload = { lambda, mu, s, N, n };
-    //   const result = await calculateMMsN(payload);
-    //   setResults(result);
-    // } catch (err) {
-    //   setError(err instanceof Error ? err.message : 'Erro ao calcular');
-    // }
-    // ==========================================
-
-    setError('⚠️ Backend Flask ainda não está rodando.');
+    try {
+      const payload = { lambda, mu, s, N, n };
+      const result = await calculateMMsN(payload);
+      setResults(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao calcular');
+    }
   };
 
   const resultItems = results
@@ -222,7 +215,6 @@ export const MMsN: React.FC = () => {
                     placeholder="Ex: 0.0167"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Taxa por cliente QUANDO está operando
@@ -236,7 +228,6 @@ export const MMsN: React.FC = () => {
                     placeholder="Ex: 0.125"
                     required
                     min={0}
-                    step="any"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Taxa de reparo POR SERVIDOR
@@ -250,7 +241,6 @@ export const MMsN: React.FC = () => {
                     placeholder="Ex: 2"
                     required
                     min={2}
-                    step="1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Quantidade de técnicos/operadores (≥2)
@@ -264,7 +254,6 @@ export const MMsN: React.FC = () => {
                     placeholder="Ex: 10"
                     required
                     min={1}
-                    step="1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
                     Total de clientes/máquinas/robôs
@@ -294,8 +283,6 @@ export const MMsN: React.FC = () => {
                     onChange={handleInputChange('n')}
                     placeholder="Ex: 3"
                     min={0}
-                    max={inputs.N || undefined}
-                    step="1"
                   />
                   <p className="text-xs text-gray-600 mt-1">
                     Para calcular <strong>P(n)</strong> (0 ≤ n ≤ N)
@@ -509,32 +496,6 @@ export const MMsN: React.FC = () => {
         </div>
       </div>
 
-      {/* Info do backend */}
-      <div className="bg-wine-50 border-l-4 border-wine-600 p-5 rounded-lg">
-        <div className="flex items-start gap-3">
-          <SiPython className="text-2xl text-wine-700 flex-shrink-0 mt-1" />
-          <div className="text-sm">
-            <h4 className="font-bold text-wine-900 mb-2">Backend Necessário</h4>
-            <p className="text-wine-800 mb-2">
-              Esta interface está pronta. Seus colegas de back-end devem:
-            </p>
-            <ul className="space-y-1 text-wine-800">
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Implementar fórmulas do M/M/s/N em Python</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Criar endpoint POST /api/calculate/mmsn</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <HiCheckCircle className="text-wine-600 flex-shrink-0 mt-0.5" />
-                <span>Retornar todos os resultados calculados</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
